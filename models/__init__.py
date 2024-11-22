@@ -6,6 +6,23 @@ from models.ice_time import Ice_Time
 session = Session()
 
 
+class ice_cost():
+    def __init__(self, uSkateUUID):
+        self.uSkateUUID = uSkateUUID
+
+    def ice_cost(self):
+        '''
+        Total cost of time on ice, by uSkaterUUID.
+        '''
+        cost = session.query(
+            func.sum(Ice_Time.ice_cost)
+        ).where(
+            Ice_Time.uSkaterUUID == self.uSkateUUID
+            ).scalar()
+
+        return cost
+
+
 class ice_time():
     def __init__(self, uSkaterUUID):
         self.uSkaterUUID = uSkaterUUID
