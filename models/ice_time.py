@@ -1,8 +1,8 @@
 from sqlalchemy import Column, DateTime, Integer, Float
-from .cyberconnect2 import Ice_Time, Base
+from .cyberconnect2 import Base
 
 
-class Ice_Time(Ice_Time, Base):
+class Ice_Time(Base):
     __tablename__ = 'ice_time'
 
     ice_time_id = Column(Integer, primary_key=True)
