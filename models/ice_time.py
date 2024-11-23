@@ -1,9 +1,10 @@
 from sqlalchemy import Column, DateTime, Integer, Float
-from .cyberconnect2 import Base
+from base import Base
 
 
 class Ice_Time(Base):
     __tablename__ = 'ice_time'
+    __table_args__ = {'extend_existing': True}
 
     ice_time_id = Column(Integer, primary_key=True)
     date = Column(DateTime)

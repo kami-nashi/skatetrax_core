@@ -14,11 +14,13 @@ class ice_cost():
         '''
         Total cost of time on ice, by uSkaterUUID.
         '''
-        cost = session.query(
-            func.sum(Ice_Time.ice_cost)
-        ).where(
-            Ice_Time.uSkaterUUID == self.uSkateUUID
-            ).scalar()
+
+        with Session() as s:
+            cost = (
+                s.query(func.sum(Ice_Time.ice_cost))
+                .where(Ice_Time.uSkaterUUID == self.uSkateUUID)
+                .scalar()
+                    )
 
         return cost
 
@@ -32,11 +34,12 @@ class ice_time():
         Get all minutes for a skater, by uSkaterUUID.
         '''
 
-        minutes = session.query(
-            func.sum(Ice_Time.ice_time)
-                                ).where(
-                                    Ice_Time.uSkaterUUID == self.uSkaterUUID
-                                    ).scalar()
+        with Session() as s:
+            minutes = (
+                s.query(func.sum(Ice_Time.ice_time))
+                .where(Ice_Time.uSkaterUUID == self.uSkaterUUID)
+                .scalar()
+                        )
         return minutes
 
     def ice_time_config_in_minutes(self, uSkaterConfig):
@@ -45,11 +48,21 @@ class ice_time():
         Requires the uSkaterConfig as an ID to match on.
         '''
 
-        minutes = session.query(
-            func.sum(Ice_Time.ice_time)
-                                ).where(
-                                    Ice_Time.uSkaterUUID == self.uSkaterUUID
-                                    ).where(
-                                        Ice_Time.uSkaterConfig == uSkaterConfig
-                                        ).scalar()
+        with Session() as s:
+            minutes = (
+                s.query(func.sum(Ice_Time.ice_time))
+                .where(Ice_Time.uSkaterUUID == self.uSkaterUUID)
+                .where(Ice_Time.uSkaterConfig == uSkaterConfig)
+                .scalar()
+                        )
         return minutes
+
+
+class insert_data():
+
+    def add_data(ice_session):
+        with Session() as s:
+            session = Ice_Time(**ice_session)
+            s.add(session)
+            s.commit()
+            s.close()

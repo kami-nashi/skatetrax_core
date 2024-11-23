@@ -1,5 +1,7 @@
 from sqlalchemy import create_engine, Column, String, Integer, DateTime, Float
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker
+import ice_time
+import base
 # from datetime import datetime
 import os
 
@@ -12,7 +14,9 @@ passwd = os.environ['pgdb_password']
 
 engine = create_engine(f'postgresql://{db_user}:{passwd}@{db_url}/{db_name}')
 Session = sessionmaker(bind=engine)
-Base = declarative_base()
+
+if __name__ == "__main__":
+    base.Base.metadata.create_all(engine)
 
 
 class IceType():
