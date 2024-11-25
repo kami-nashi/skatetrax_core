@@ -1,9 +1,26 @@
 # coding=utf-8
 from sqlalchemy import func
 from models.cyberconnect2 import Session
-from models.ice_time import Ice_Time
+from models.t_ice_time import Ice_Time
+from models.t_locations import Locations
+from models.t_icetype import IceType
 
 session = Session()
+
+
+class locations():
+
+    def add_rink(rinks):
+        for rink in rinks:
+            session.add(Locations(**rink))
+            session.commit()
+        session.close()
+
+    def add_types(ice_types):
+        for types in ice_types:
+            session.add(IceType(**types))
+            session.commit()
+        session.close()
 
 
 class ice_cost():
@@ -60,9 +77,23 @@ class ice_time():
 
 class insert_data():
 
-    def add_data(ice_session):
+    def add_bulk_session(ice_session):
         with Session() as s:
-            session = Ice_Time(**ice_session)
-            s.add(session)
-            s.commit()
-            s.close()
+            for session in ice_session:
+                s.add(Ice_Time(**session))
+                s.commit()
+        s.close()
+
+
+class ice_sessions():
+
+    def list_all(uSkaterUUID):
+        with Session() as s:
+            all_sessions = (
+                s.query(Ice_Time, Locations, IceType)
+                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
+                .join(Locations, Ice_Time.rink_id == Locations.rink_id)
+                .join(IceType, Ice_Time.skate_type == IceType.id)
+                .all()
+                )
+        return all_sessions

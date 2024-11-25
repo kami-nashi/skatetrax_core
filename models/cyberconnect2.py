@@ -1,8 +1,5 @@
 from sqlalchemy import create_engine, Column, String, Integer, DateTime, Float
 from sqlalchemy.orm import sessionmaker
-import ice_time
-import base
-# from datetime import datetime
 import os
 
 
@@ -10,30 +7,9 @@ db_url = os.environ['pgdb_host']
 db_name = os.environ['pgdb_name']
 db_user = os.environ['pgdb_user']
 passwd = os.environ['pgdb_password']
-# date_now = datetime()
 
 engine = create_engine(f'postgresql://{db_user}:{passwd}@{db_url}/{db_name}')
 Session = sessionmaker(bind=engine)
-
-if __name__ == "__main__":
-    base.Base.metadata.create_all(engine)
-
-
-class IceType():
-    '''
-    This table describes the different types of ice sessions, used
-    as part of foreign keys. If you want a human readable experience,
-    this needs to be populated at setup.
-
-    Used to calcuate things like how many hours or dollars have been spent
-    competing vs practicing, or practicing on freestyle vs public time
-    '''
-
-    id = Column(Integer, primary_key=True)
-    ice_type = Column(String)
-
-    def __init__(self, ice_type):
-        self.ice_type = ice_type
 
 
 class Coaches():
