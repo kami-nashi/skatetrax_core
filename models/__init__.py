@@ -7,6 +7,7 @@ from models.t_ice_time import Ice_Time
 from models.t_locations import Locations
 from models.t_icetype import IceType
 from models.t_coaches import Coaches
+from models.t_equip_skates import uSkateConfig, uSkaterBlades, uSkaterBoots
 
 
 session = Session()
@@ -135,3 +136,88 @@ class ice_sessions():
         )
 
         return df
+
+
+class equipment():
+    class add():
+
+        def boot(boots):
+            with Session() as s:
+                for b in boots:
+                    s.add(uSkaterBoots(**b))
+                    s.commit()
+            s.close()
+
+        def blade(blades):
+            with Session() as s:
+                for b in blades:
+                    s.add(uSkaterBlades(**b))
+                    s.commit()
+            s.close()
+
+        def sConfig(config):
+            with Session() as s:
+                for c in config:
+                    s.add(uSkateConfig(**c))
+                    s.commit()
+            s.close()
+
+    class list():
+        def all_configs(uSkaterUUID):
+            df = pd.read_sql_query(
+                sql=Session()
+                .query(
+                    uSkateConfig.date_created,
+                    uSkaterBoots.bootsModel,
+                    uSkaterBoots.bootsName,
+                    uSkaterBlades.bladesModel,
+                    uSkaterBlades.bladesName
+                )
+                .where(
+                    (uSkateConfig.uSkaterUUID == uSkaterUUID)
+                    & (uSkaterBoots.uSkaterUUID == uSkaterUUID)
+                    & (uSkaterBlades.uSkaterUUID == uSkaterUUID)
+                    )
+                .join(
+                    uSkaterBoots,
+                    uSkateConfig.uSkaterBootsID == uSkaterBoots.bootsID
+                    )
+                .join(
+                    uSkaterBlades,
+                    uSkateConfig.uSkaterBladesID == uSkaterBlades.bladesID
+                    )
+                .distinct()
+                .statement, con=engine
+            )
+
+            return df
+
+        def active_config(uSkaterUUID):
+            df = pd.read_sql_query(
+                sql=Session()
+                .query(
+                    uSkateConfig.date_created,
+                    uSkaterBoots.bootsModel,
+                    uSkaterBoots.bootsName,
+                    uSkaterBlades.bladesModel,
+                    uSkaterBlades.bladesName
+                )
+                .where(
+                    (uSkateConfig.uSkaterUUID == uSkaterUUID)
+                    & (uSkateConfig.uConfigActive == 1)
+                    & (uSkaterBoots.uSkaterUUID == uSkaterUUID)
+                    & (uSkaterBlades.uSkaterUUID == uSkaterUUID)
+                    )
+                .join(
+                    uSkaterBoots,
+                    uSkateConfig.uSkaterBootsID == uSkaterBoots.bootsID
+                    )
+                .join(
+                    uSkaterBlades,
+                    uSkateConfig.uSkaterBladesID == uSkaterBlades.bladesID
+                    )
+                .distinct()
+                .statement, con=engine
+            )
+
+            return df
