@@ -1,7 +1,5 @@
-from sqlalchemy import Column, DateTime, Integer, Float, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, DateTime, Integer, Float
 from .base import Base
-# from .locations import Locations
 
 
 class Ice_Time(Base):
@@ -22,9 +20,6 @@ class Ice_Time(Base):
     uSkaterUUID = Column(Integer)
     uSkaterConfig = Column(Integer)
     uSkaterType = Column(Integer)
-
-    # location_id = relationship('Locations', foreign_keys='Locations.rink_id')
-    # ice_time_location = relationship('Locations', foreign_keys=)
 
     def __init__(
         self,

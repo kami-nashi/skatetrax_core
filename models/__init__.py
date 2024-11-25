@@ -1,11 +1,24 @@
 # coding=utf-8
+import pandas as pd
 from sqlalchemy import func
-from models.cyberconnect2 import Session
+from models.cyberconnect2 import Session, engine
+
 from models.t_ice_time import Ice_Time
 from models.t_locations import Locations
 from models.t_icetype import IceType
+from models.t_coaches import Coaches
+
 
 session = Session()
+
+
+class coaches():
+
+    def add_coaches(coaches):
+        for coach in coaches:
+            session.add(Coaches(**coach))
+            session.commit()
+        session.close()
 
 
 class locations():
@@ -96,4 +109,29 @@ class ice_sessions():
                 .join(IceType, Ice_Time.skate_type == IceType.id)
                 .all()
                 )
+
         return all_sessions
+
+    def df_all(uSkaterUUID):
+        df = pd.read_sql_query(
+            sql=Session().query(
+                Ice_Time.date,
+                Ice_Time.ice_time,
+                Ice_Time.ice_cost,
+                IceType.ice_type,
+                Ice_Time.coach_time,
+                Coaches.coach_Fname,
+                Coaches.coach_Lname,
+                Ice_Time.coach_cost,
+                Locations.rink_name,
+                Locations.rink_city,
+                Locations.rink_state,
+                )
+            .where(Ice_Time.uSkaterUUID == uSkaterUUID)
+            .join(Locations, Ice_Time.rink_id == Locations.rink_id)
+            .join(IceType, Ice_Time.skate_type == IceType.id)
+            .join(Coaches, Ice_Time.coach_id == Coaches.id)
+            .statement, con=engine
+        )
+
+        return df
