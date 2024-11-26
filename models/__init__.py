@@ -23,14 +23,27 @@ class coaches():
 
 
 class locations():
+    '''
+    Everything needed for managing rinks such as but not limited to
+    adding rinks, session types, listing rinks by hours or skaters
+    and more
+    '''
 
     def add_rink(rinks):
+        '''
+        Adds a rink to the location table
+        '''
+
         for rink in rinks:
             session.add(Locations(**rink))
             session.commit()
         session.close()
 
     def add_types(ice_types):
+        '''
+        Adds a session such as freestyle, public, group class, etc
+        '''
+
         for types in ice_types:
             session.add(IceType(**types))
             session.commit()
@@ -92,6 +105,10 @@ class ice_time():
 class insert_data():
 
     def add_bulk_session(ice_session):
+        '''
+        This should probably be moved to ice_sessions class
+        '''
+
         with Session() as s:
             for session in ice_session:
                 s.add(Ice_Time(**session))
@@ -102,6 +119,10 @@ class insert_data():
 class ice_sessions():
 
     def list_all(uSkaterUUID):
+        '''
+        lists all ice sessions of a particular skater via uSkaterUUID
+        '''
+
         with Session() as s:
             all_sessions = (
                 s.query(Ice_Time, Locations, IceType)
@@ -114,6 +135,13 @@ class ice_sessions():
         return all_sessions
 
     def df_all(uSkaterUUID):
+        '''
+        Same as list_all(), but returns a pandas dataframe which
+        may be the way of the future if we can pass json correctly
+        Returns same data as legacy sessions table:
+        date, ice session meta, coach meta, rink meta.
+        '''
+
         df = pd.read_sql_query(
             sql=Session().query(
                 Ice_Time.date,
@@ -139,9 +167,17 @@ class ice_sessions():
 
 
 class equipment():
+    '''
+    Everything related to equipment ...
+    '''
+
     class add():
 
         def boot(boots):
+            '''
+            Adds boot meta to the boots table
+            '''
+
             with Session() as s:
                 for b in boots:
                     s.add(uSkaterBoots(**b))
@@ -149,6 +185,10 @@ class equipment():
             s.close()
 
         def blade(blades):
+            '''
+            Adds blade meta to the blades table
+            '''
+
             with Session() as s:
                 for b in blades:
                     s.add(uSkaterBlades(**b))
@@ -156,6 +196,12 @@ class equipment():
             s.close()
 
         def sConfig(config):
+            '''
+            adds a config that uses the boots and blades specific IDs
+            as a key to join on, determines what skate config is currently
+            active for a specific uSkaterUUID
+            '''
+
             with Session() as s:
                 for c in config:
                     s.add(uSkateConfig(**c))
@@ -164,6 +210,11 @@ class equipment():
 
     class list():
         def all_configs(uSkaterUUID):
+            '''
+            returns a pandas dataframe of all skate config combos
+            for a specific uSkaterUUID
+            '''
+
             df = pd.read_sql_query(
                 sql=Session()
                 .query(
@@ -193,6 +244,11 @@ class equipment():
             return df
 
         def active_config(uSkaterUUID):
+            '''
+            returns a pandas dataframe of only the current skate
+            config combo for a specific uSkaterUUID
+            '''
+
             df = pd.read_sql_query(
                 sql=Session()
                 .query(
