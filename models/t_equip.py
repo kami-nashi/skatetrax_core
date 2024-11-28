@@ -2,6 +2,54 @@ from sqlalchemy import Column, Integer, Float, String, DateTime
 from .base import Base
 
 
+class uSkaterEquipManifest(Base):
+    '''
+    This table keeps track of items purchased along the skater's jouney
+    excluding boots and blades.  This is a good place for things like
+    tights, gloves, bags and other associated items that don't really
+    have specified lifetimes but may need replaced or even avoided in the
+    future.
+    '''
+
+    __tablename__ = 'uSkaterEquipment'
+    __table_args__ = {'extend_existing': True}
+
+    id = Column(Integer, primary_key=True)
+    date_created = Column(DateTime)
+    equip_manufacturer = Column(String)
+    equip_model = Column(String)
+    equip_notes = Column(String)
+    equip_size = Column(String)
+    equip_color = Column(String)
+    equip_vendor = Column(String)
+    equip_cost = Column(Float)
+    equip_url = Column(String)
+    uSkaterUUID = Column(Integer)
+
+    def __init__(
+        self,
+        date_created,
+        equip_manufacturer,
+        equip_model,
+        equip_notes,
+        equip_size,
+        equip_color,
+        equip_vendor,
+        equip_cost,
+        uSkaterUUID
+            ):
+
+        self.date_created = date_created
+        self.equip_manufacturer = equip_manufacturer
+        self.equip_model = equip_model
+        self.equip_notes = equip_notes
+        self.equip_size = equip_size
+        self.equip_color = equip_color
+        self.equip_vendor = equip_vendor
+        self.equip_cost = equip_cost
+        self.uSkaterUUID = uSkaterUUID
+
+
 class uSkateConfig(Base):
     '''
     This table describes a pair of skates, as a combo, per skater.

@@ -7,7 +7,7 @@ from models.t_ice_time import Ice_Time
 from models.t_locations import Locations
 from models.t_icetype import IceType
 from models.t_coaches import Coaches
-from models.t_equip_skates import uSkateConfig, uSkaterBlades, uSkaterBoots
+from models.t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
 
 
 session = Session()
