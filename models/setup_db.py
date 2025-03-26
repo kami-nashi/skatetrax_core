@@ -1,4 +1,8 @@
-from models import coaches, locations, insert_data, equipment
+import argparse
+#from models import coaches, locations, insert_data, equipment
+
+from models.ops.updaters import Location_Data, Coach_Data
+
 from models.cyberconnect2 import engine
 from datetime import datetime, timezone
 from .base import Base
@@ -35,27 +39,42 @@ from .t_journal import Journal_Notes, Journal_Videos
 date_created = datetime.now(timezone.utc)
 
 if __name__ == "__main__":
-    Base.metadata.create_all(engine)
+    parser = argparse.ArgumentParser(description='Generate or Delete Default data and tables')
+    parser.add_argument('-c','--create', action='store_true', help='Create tables, then insert defaults')
+    parser.add_argument('-d','--drop', action='store_true', help='Drop all tables. The end.')
+    args = parser.parse_args()
 
-    # we know that some tables need default starting data for all users
-    ice_types = [
-        {'type_id': 1, 'ice_type': 'Free Style (Walk On)'},
-        {'type_id': 2, 'ice_type': 'Public'},
-        {'type_id': 3, 'ice_type': 'Coaching Session'},
-        {'type_id': 4, 'ice_type': 'Competition'},
-        {'type_id': 5, 'ice_type': 'Performance'},
-        {'type_id': 6, 'ice_type': 'Club Ice'},
-        {'type_id': 7, 'ice_type': 'Group Class'},
-        {'type_id': 8, 'ice_type': 'Free Style (Punch Card)'},
-        {'type_id': 9, 'ice_type': 'Off Ice - Concrete or Asphalt'},
-        {'type_id': 10, 'ice_type': 'Off Ice - Rink'}
-    ]
+    if args.create:
+        # code here
 
-    locations.add_types(ice_types)
+        Base.metadata.create_all(engine)
 
-    coaches.add_coaches([{'coach_Fname': '-', 'coach_Lname': '-', 'coach_rate': '0', 'uSkaterUUID': 0}])
+        # we know that some tables need default starting data for all users
+        ice_types = [
+            {'ice_type_id': 'dc812842-a9a9-4902-b680-361420baffe5', 'ice_type': 'Free Style (Walk On)'},
+            {'ice_type_id': 'cedbb4e9-ab5b-4a14-a273-fd9783aaac86', 'ice_type': 'Public'},
+            {'ice_type_id': '12208eeb-9ffe-4ac3-90d3-976741a34249', 'ice_type': 'Coaching Session'},
+            {'ice_type_id': '7a3b3441-04d6-4b5a-afb6-eb556022c2e7', 'ice_type': 'Competition'},
+            {'ice_type_id': '88f87085-927d-4b77-b1c9-77d6de7c2d28', 'ice_type': 'Performance'},
+            {'ice_type_id': 'e48d17a7-d092-4320-8e5b-6670d57b104b', 'ice_type': 'Club Ice'},
+            {'ice_type_id': 'db32094e-9b0d-42a5-b87f-cd47729b6c65', 'ice_type': 'Group Class'},
+            {'ice_type_id': '0bcb0d7a-f5f0-41e2-bccb-78e80eb6673f', 'ice_type': 'Free Style (Punch Card)'},
+            {'ice_type_id': 'a2250306-a238-4ff3-b772-ae86cbda0d7c', 'ice_type': 'Off Ice - Concrete or Asphalt'},
+            {'ice_type_id': '43cae2d2-909c-47a1-ac7d-a1a923c25d4e', 'ice_type': 'Off Ice - Rink'}
+        ]
 
-# to create, run: python -m models.setup_db
+        default_coaches = [
+            {'coach_Fname': '-', 'coach_Lname': '-', 'coach_rate': '0', 'uSkaterUUID': '487d43b5-0a4d-4dc4-8cc2-ab06870a10bf'}
+        ]
+
+        Location_Data.add_ice_type(ice_types)
+        Coach_Data.add_coaches(default_coaches)
+
+    if args.drop:
+        Base.metadata.drop_all(bind=engine)
+
+# to create, run: python -m models.setup_db -c
+# to drop all, run: python -m models.setup_db -d
 
 # this script is a complete mess. PEP8 complains about the imports, which are all over the place.
 # note sure how to address this, if you're reading this - I sincerely wish it was better. :)

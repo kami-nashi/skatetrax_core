@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import Column, String, Integer, DateTime, UUID
 from .base import Base
 
 
@@ -15,7 +15,7 @@ class uSkaterConfig(Base):
 
     id = Column(Integer, primary_key=True)
     date_created = Column(DateTime)
-    uSkaterUUID = Column(Integer)
+    uSkaterUUID = Column(UUID, unique=True)
     uSkaterFname = Column(String)
     uSkaterMname = Column(String)
     uSkaterLname = Column(String)
@@ -23,15 +23,15 @@ class uSkaterConfig(Base):
     uSkaterCity = Column(String)
     uSkaterState = Column(String)
     uSkaterCountry = Column(String)
-    uSkaterComboIce = Column(Integer)
-    uSkaterComboOff = Column(Integer)
-    uSkaterRinkPref = Column(Integer)
+    uSkaterComboIce = Column(UUID, unique=True)
+    uSkaterComboOff = Column(UUID, unique=True)
+    uSkaterRinkPref = Column(UUID)
     uSkaterMaintPref = Column(Integer)
     uSkaterSolo = Column(Integer)
     uSkaterParent = Column(Integer)
     uSkaterPair = Column(Integer)
     uSkaterCoach = Column(Integer)
-    activeCoach = Column(Integer)
+    activeCoach = Column(UUID)
     org_Club_Name = Column(String)
     org_Club_Join_Date = Column(DateTime)
     org_USFSA_number = Column(Integer)

@@ -1,4 +1,6 @@
 from sqlalchemy import Column, DateTime, Integer, String, Float
+from sqlalchemy.orm import mapped_column, Mapped
+from uuid import uuid4, UUID
 from .base import Base
 
 
@@ -13,7 +15,7 @@ class Locations(Base):
     __tablename__ = 'locations'
     __table_args__ = {'extend_existing': True}
 
-    rink_id = Column(Integer, primary_key=True)
+    rink_id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     rink_name = Column(String)
     rink_address = Column(String)
     rink_city = Column(String)

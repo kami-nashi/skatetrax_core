@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String
+from sqlalchemy import Column, Integer, Float, String, UUID
 from .base import Base
 
 
@@ -25,7 +25,8 @@ class Coaches(Base):
     coach_Fname = Column(String)
     coach_Lname = Column(String)
     coach_rate = Column(Float)
-    uSkaterUUID = Column(Integer)
+    #uSkaterUUID: Mapped[UUID] = mapped_column(default=uuid4)
+    uSkaterUUID = Column(UUID, unique=True)
 
     def __init__(self, coach_Fname, coach_Lname, coach_rate, uSkaterUUID):
         self.coach_Fname = coach_Fname

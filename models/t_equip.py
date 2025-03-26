@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, Float, String, DateTime
+from sqlalchemy import Column, Integer, Float, String, DateTime, UUID
+from sqlalchemy.orm import mapped_column, Mapped
+from uuid import uuid4, UUID as UUIDV4
 from .base import Base
 
 
@@ -59,8 +61,7 @@ class uSkateConfig(Base):
     to evey user, for new skaters that havent purchased skates yet.
 
     sConfigType is a key for ice skates vs roller/pic/box skates.
-    sConfigActiveID is determines if a combo is currently in use.
-    uConfigActice specifies what user (uSkaterUUID) owns the config
+    sActiveFlag is determines if a combo is currently in use.
 
     Every field is required for this to work correctly, but is all
     either true/false or foreign key data except for the date.
@@ -69,33 +70,32 @@ class uSkateConfig(Base):
     __tablename__ = 'uSkateConfig'
     __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer, primary_key=True)
+    sConfigID: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
     date_created = Column(DateTime)
-    uSkaterUUID = Column(Integer)
-    uSkaterBladesID = Column(Integer)
-    uSkaterBootsID = Column(Integer)
-    sConfigType = Column(Integer)
-    sConfigActiveID = Column(Integer)
-    uConfigActive = Column(Integer)
+    uSkaterUUID = Column(UUID)
+    uSkaterBladesID = Column(UUID)
+    uSkaterBootsID = Column(UUID)
+    sConfigType = Column(Integer)  # surface type
+    sActiveFlag = Column(Integer)
 
     def __init__(
         self,
+        sConfigID,
         date_created,
-        uSkaterUUID,
         uSkaterBladesID,
         uSkaterBootsID,
+        uSkaterUUID,
         sConfigType,
-        sConfigActiveID,
-        uConfigActive
+        sActiveFlag
     ):
 
+        self.sConfigID = sConfigID
         self.date_created = date_created
-        self.uSkaterUUID = uSkaterUUID
         self.uSkaterBladesID = uSkaterBladesID
         self.uSkaterBootsID = uSkaterBootsID
+        self.uSkaterUUID = uSkaterUUID
         self.sConfigType = sConfigType
-        self.sConfigActiveID = sConfigActiveID
-        self.uConfigActive = uConfigActive
+        self.sActiveFlag = sActiveFlag
 
 
 class uSkaterBlades(Base):
@@ -108,14 +108,13 @@ class uSkaterBlades(Base):
     __tablename__ = 'uSkaterBlades'
     __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer, primary_key=True)
+    bladesID: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
     date_created = Column(DateTime)
-    bladesID = Column(Integer)
     bladesName = Column(String)
     bladesModel = Column(String)
     bladesSize = Column(String)
     bladesPurchaseAmount = Column(Float)
-    uSkaterUUID = Column(Integer)
+    uSkaterUUID = Column(UUID)
 
     def __init__(
         self,
@@ -147,14 +146,13 @@ class uSkaterBoots(Base):
     __tablename__ = 'uSkaterBoots'
     __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer, primary_key=True)
+    bootsID: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
     date_created = Column(DateTime)
-    bootsID = Column(Integer)
     bootsName = Column(String)
     bootsModel = Column(String)
     bootsSize = Column(String)
     bootsPurchaseAmount = Column(Float)
-    uSkaterUUID = Column(Integer)
+    uSkaterUUID = Column(UUID)
 
     def __init__(
         self,

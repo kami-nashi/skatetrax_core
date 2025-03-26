@@ -4,7 +4,7 @@ Provides decorators, classes, and functions specific to Skatetrax. Additionally,
 
 ## Requires
 ``` bash
-sudo yum install python3 python3-pip
+sudo yum install python3 python3-pip libpq libpq-devel python3-psycopg2 postgresql15
 pip install pipenv --user
 ```
 

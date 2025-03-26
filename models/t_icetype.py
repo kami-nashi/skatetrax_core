@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, String
+from sqlalchemy.orm import mapped_column, Mapped
+from uuid import uuid4, UUID
 from .base import Base
 
 
@@ -15,9 +17,9 @@ class IceType(Base):
     __tablename__ = 'ice_type'
     __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer, primary_key=True)
+    ice_type_id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     ice_type = Column(String)
 
-    def __init__(self, type_id, ice_type):
-        self.id = type_id
+    def __init__(self, ice_type_id, ice_type):
+        self.ice_type_id = ice_type_id
         self.ice_type = ice_type
