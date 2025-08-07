@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Float, Integer, DateTime, String, ForeignKey, UUID
 from sqlalchemy.orm import mapped_column, Mapped
-from uuid import uuid4
+from uuid import uuid4, UUID as UUIDV4
 from .base import Base
 
 
@@ -16,7 +16,7 @@ class Club_Membership(Base):
     __tablename__ = 'club_membership'
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
     
     club_home_rink = Column(UUID, ForeignKey("locations.rink_id", ondelete='CASCADE'))
     club_cost = Column(Float)

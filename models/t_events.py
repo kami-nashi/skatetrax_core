@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Float, Integer, DateTime, String, ForeignKey, UUID
 from sqlalchemy.orm import mapped_column, Mapped
-from uuid import uuid4
+from uuid import uuid4, UUID as UUIDV4
 from .base import Base
 
 
@@ -20,7 +20,7 @@ class CompetitionType(Base):
     __tablename__ = 'e_competition_types'
     __table_args__ = {'extend_existing': True}
     
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
     label = Column(String)    
     governing_body = Column(String)    
 
@@ -49,7 +49,7 @@ class Events_Competition(Base):
     __tablename__ = 'e_competition'
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
 
     event_cost = Column(Float)
     event_label = Column(String)

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Float, String, UUID
 from sqlalchemy.orm import mapped_column, Mapped
 
-from uuid import uuid4
+from uuid import uuid4, UUID as UUIDV4
 from .base import Base
 
 
@@ -29,7 +29,7 @@ class Coaches(Base):
     __tablename__ = 'coaches'
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
 
     coach_Fname = Column(String)
     coach_Lname = Column(String)
