@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String, UUID
+from sqlalchemy import Column, Integer, Float, String, ForeignKey, UUID
 from sqlalchemy.orm import mapped_column, Mapped
 
 from uuid import uuid4, UUID as UUIDV4
@@ -29,7 +29,7 @@ class Coaches(Base):
     __tablename__ = 'coaches'
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[UUIDV4] = mapped_column(primary_key=True, unique=True, default=uuid4)
 
     coach_Fname = Column(String)
     coach_Lname = Column(String)
@@ -40,7 +40,7 @@ class Coaches(Base):
     coach_phone = Column(Integer, unique=True)
     coach_email = Column(String, unique=True)
     
-    uSkaterUUID = Column(UUID, nullable=True)
+    uSkaterUUID = Column(UUID)
 
     def __init__(
         self,

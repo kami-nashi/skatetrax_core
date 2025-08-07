@@ -12,7 +12,7 @@ from .base import Base
 from .t_ice_time import Ice_Time
 from .t_icetype import IceType
 from .t_locations import Locations, Punch_cards
-from .t_skaterMeta import uSkaterConfig
+from .t_skaterMeta import uSkaterConfig, SkaterType
 
 # items for configuring skates, cost of gear
 from .t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots, uSkaterEquipManifest
@@ -23,14 +23,17 @@ from .t_coaches import Coaches
 # maintenance
 from .t_maint import uSkaterMaint
 
-# memberships (USFSA)
+# skate club memberships (USFSA)
 from .t_memberships import Club_Membership
 
 # camps, LTS, multiweek series
 from .t_classes import Skate_Camp, Skate_School
 
 # competitions, tests, etc
-from .t_events import Event_Test, Events_Competition, Event_Performance
+from .t_events import  Events_Competition, CompetitionType
+
+#Import table for skating tests
+from .t_tests import Event_Test
 
 # last, import supporting tables for things like notes, videos
 from .t_journal import Journal_Notes, Journal_Videos
@@ -64,7 +67,16 @@ if __name__ == "__main__":
         ]
 
         default_coaches = [
-            {'coach_Fname': '-', 'coach_Lname': '-', 'coach_rate': '0', 'uSkaterUUID': '487d43b5-0a4d-4dc4-8cc2-ab06870a10bf'}
+            {
+                'coach_Fname': '-',
+                'coach_Lname': '-',
+                'coach_rate': '0',
+                'uSkaterUUID': '487d43b5-0a4d-4dc4-8cc2-ab06870a10bf',
+                'coach_phone': 0,
+                'coach_email': 'none',
+                'coach_ijs_id': 0,
+                'coach_usfsa_id': 0
+                }
         ]
 
         Location_Data.add_ice_type(ice_types)

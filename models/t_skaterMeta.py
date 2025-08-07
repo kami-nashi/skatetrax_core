@@ -1,4 +1,6 @@
-from sqlalchemy import Column, String, Integer, DateTime, UUID
+from sqlalchemy import Column, String, Integer, DateTime, UUID, text
+from sqlalchemy.dialects.postgresql import JSONB
+
 from .base import Base
 
 
@@ -14,6 +16,8 @@ class uSkaterConfig(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True)
+    
+    # who meta
     date_created = Column(DateTime)
     uSkaterUUID = Column(UUID, unique=True)
     uSkaterFname = Column(String)
@@ -23,10 +27,15 @@ class uSkaterConfig(Base):
     uSkaterCity = Column(String)
     uSkaterState = Column(String)
     uSkaterCountry = Column(String)
+    uSkaterRoles = Column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))
+    
+    #equip configs
     uSkaterComboIce = Column(UUID, unique=True)
     uSkaterComboOff = Column(UUID, unique=True)
     uSkaterRinkPref = Column(UUID)
     uSkaterMaintPref = Column(Integer)
+    
+    #training meta
     activeCoach = Column(UUID)
     org_Club = Column(UUID)
     org_Club_Join_Date = Column(DateTime)
@@ -43,6 +52,7 @@ class uSkaterConfig(Base):
         uSkaterCity,
         uSkaterState,
         uSkaterCountry,
+        uSkaterRoles,
         uSkaterComboIce,
         uSkaterComboOff,
         uSkaterRinkPref,
@@ -62,6 +72,7 @@ class uSkaterConfig(Base):
         self.uSkaterCity = uSkaterCity
         self.uSkaterState = uSkaterState
         self.uSkaterCountry = uSkaterCountry
+        self.uSkaterRoles = uSkaterRoles
         self.uSkaterComboIce = uSkaterComboIce
         self.uSkaterComboOff = uSkaterComboOff
         self.uSkaterRinkPref = uSkaterRinkPref
@@ -70,3 +81,33 @@ class uSkaterConfig(Base):
         self.org_Club_Name = org_Club_Name
         self.org_Club_Join_Date = org_Club_Join_Date
         self.org_USFSA_number = org_USFSA_number
+
+
+class SkaterType(Base):
+    """
+    This table should hold various types of skater roles. An adult skater may
+    also be other types, such as a coach AND guardian. To grow these columns, 
+    simply add the name and mark the column as a boolean
+    
+    Starting options:
+    1: Adult - Regular Smegular
+    2: Coach - Probably also an adult skater, but specifically a coach
+    3: Minor - Under 18, requires guardian representation and care
+    4: Guardian - Maybe not a skater, but a parent of one or more.
+    """
+
+    __tablename__ = 'u_skater_types'
+    __table_args__ = {'extend_existing': True}
+    
+    id = Column(Integer, primary_key=True)
+    label = Column(String)
+
+    def __init__(
+        self,
+        label
+            ):
+
+        self.label = label
+    
+    def __repr__(self):
+        return f"<SkaterType(id={self.id}, label={self.label})>"
