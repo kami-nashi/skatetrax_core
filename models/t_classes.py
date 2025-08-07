@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, Float, UUID
+from sqlalchemy import Column, String, Integer, DateTime, Float, UUID, ForeignKey
 from .base import Base
 
 
@@ -13,12 +13,12 @@ class Skate_Camp(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True)
-    location_id = Column(UUID)
+    location_id = Column(UUID, ForeignKey("locations.rink_id", ondelete='CASCADE'))
     camp_cost = Column(Float)
     camp_name = Column(String)
     date_start = Column(DateTime)
     date_end = Column(DateTime)
-    uSkaterUUID = Column(UUID)
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
     def __init__(
         self,
@@ -48,12 +48,12 @@ class Skate_School(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True)
-    location_id = Column(UUID)
+    location_id = Column(UUID, ForeignKey("locations.rink_id", ondelete='CASCADE'))
     class_cost = Column(Float)
     class_name = Column(String)
     date_start = Column(DateTime)
     date_end = Column(DateTime)
-    uSkaterUUID = Column(UUID)
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
     def __init__(
         self,

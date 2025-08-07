@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import Column, String, Integer, DateTime, UUID, ForeignKey
 from .base import Base
 
 
@@ -13,7 +13,7 @@ class Journal_Notes(Base):
     id = Column(Integer, primary_key=True)
     notes_date = Column(DateTime)
     notes = Column(String)
-    uSkaterUUID = Column(Integer)
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
     def __init__(self, notes_date, notes, uSkaterUUID):
         self.notes_date = notes_date
@@ -36,7 +36,7 @@ class Journal_Videos(Base):
     video_platform = Column(String)
     video_type = Column(String)
     video_name = Column(String)
-    uSkaterUUID = Column(Integer)
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
     def __init__(
         self,

@@ -1,4 +1,7 @@
 from sqlalchemy import Column, Integer, Float, String, UUID
+from sqlalchemy.orm import mapped_column, Mapped
+
+from uuid import uuid4
 from .base import Base
 
 
@@ -14,6 +17,11 @@ class Coaches(Base):
 
     A coach with a uSkaterUUID of NULL should indicate that the coach isnt
     a skatetrax user yet.
+    
+    Future enhancement: A merge process should detect and prompt users when
+    their USFSA/IJS number already exists in the system, and offer to claim it.
+    That would convert the anonymous/null-linked record into a verified one,
+    and update uSkaterUUID accordingly.
 
     Row 1 should always be a generic entry for 'no coach'.
     '''
@@ -21,15 +29,36 @@ class Coaches(Base):
     __tablename__ = 'coaches'
     __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer, primary_key=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+
     coach_Fname = Column(String)
     coach_Lname = Column(String)
     coach_rate = Column(Float)
-    #uSkaterUUID: Mapped[UUID] = mapped_column(default=uuid4)
-    uSkaterUUID = Column(UUID, unique=True)
 
-    def __init__(self, coach_Fname, coach_Lname, coach_rate, uSkaterUUID):
+    coach_usfsa_id = Column(Integer, unique=True)
+    coach_ijs_id = Column(Integer, unique=True)
+    coach_phone = Column(Integer, unique=True)
+    coach_email = Column(String, unique=True)
+    
+    uSkaterUUID = Column(UUID, nullable=True)
+
+    def __init__(
+        self,
+        coach_Fname,
+        coach_Lname,
+        coach_rate,
+        coach_phone,
+        coach_email,
+        coach_ijs_id,
+        coach_usfsa_id,
+        uSkaterUUID
+        ):
+        
         self.coach_Fname = coach_Fname
         self.coach_Lname = coach_Lname
         self.coach_rate = coach_rate
         self.uSkaterUUID = uSkaterUUID
+        self.coach_usfsa_id = coach_usfsa_id
+        self.coach_ijs_id = coach_ijs_id
+        self.coach_email = coach_email
+        self.coach_phone = coach_phone

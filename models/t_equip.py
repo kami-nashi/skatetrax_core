@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String, DateTime, UUID
+from sqlalchemy import Column, Integer, Float, String, DateTime, UUID, ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped
 from uuid import uuid4, UUID as UUIDV4
 from .base import Base
@@ -26,7 +26,7 @@ class uSkaterEquipManifest(Base):
     equip_vendor = Column(String)
     equip_cost = Column(Float)
     equip_url = Column(String)
-    uSkaterUUID = Column(Integer)
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
     def __init__(
         self,

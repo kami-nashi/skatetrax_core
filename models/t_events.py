@@ -1,138 +1,91 @@
-from sqlalchemy import Column, Float, Integer, DateTime
+from sqlalchemy import Column, Float, Integer, DateTime, String, ForeignKey, UUID
+from sqlalchemy.orm import mapped_column, Mapped
+from uuid import uuid4
 from .base import Base
+
+
+class CompetitionType(Base):
+    """
+    This table should hold various types of competitions. This is not to be confused with
+    what competitions a skater has performed at/in.  Currently, this is a hand curated list
+    unless there is ever a chance that we can scrape that data from another source.
+    
+    Starting options:
+    Showcase - No Governing Body
+    Competition - No Governing Body
+    Competition - USFSA
+    Competition - IJS
+    """
+
+    __tablename__ = 'e_competition_types'
+    __table_args__ = {'extend_existing': True}
+    
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    label = Column(String)    
+    governing_body = Column(String)    
+
+    def __init__(
+        self,
+        label,
+        governing_body
+            ):
+
+        self.label = label
+        self.governing_body = governing_body
+
+    def __repr__(self):
+        return f"<CompetitionType(name={self.label}, governing_body={self.governing_body})>"
 
 
 class Events_Competition(Base):
     '''
-    This table should describe a competition, though the legacy installation
-    isn't clear about what data should be here. Use with caution.
-
-    Likely this data is based on limited experience with USFSA regulations
+    This table is for recording the data that describes a skater's specific performance.
+    For instance, if Ashley was going to compete at Eastern Regionals, this would contain
+    When and Where its happening, by who, how much it costs, what config was used.
+    In the future we can include hosting club and maybe a routine identifier.
+    Currently, this should join on e_competition_type table for expanded information
     '''
 
     __tablename__ = 'e_competition'
     __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer, primary_key=True)
-    event_date = Column(DateTime)
-    event_type = Column(Integer)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+
     event_cost = Column(Float)
-    event_location = Column(Integer)
-    config_id = Column(Integer)
-    routine_id = Column(Integer)
-    award_level = Column(Integer)
-    award_points = Column(Integer)
-    uSkaterUUID = Column(Integer)
+    event_label = Column(String)
+    event_level = Column(String)
+    event_type = Column(UUID, ForeignKey("e_competition_types.id", ondelete='CASCADE'))
+    event_results = Column(String)
+
+    event_date = Column(DateTime)
+    event_location = Column(UUID, ForeignKey("locations.rink_id", ondelete='CASCADE'))
+    
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
+    uSkaterConfig = Column(UUID, ForeignKey("uSkateConfig.sConfigID", ondelete='CASCADE'))
 
     def __init__(
         self,
         event_date,
         event_type,
         event_cost,
+        event_label,
+        event_level,
+        event_results,
         event_location,
-        config_id,
-        routine_id,
-        award_level,
-        award_points,
+        uSkaterConfig,
         uSkaterUUID,
             ):
 
         self.event_date = event_date
         self.event_type = event_type
         self.event_cost = event_cost
+        self.event_label = event_label
+        self.event_level = event_level
+        self.event_results = event_results
         self.event_location = event_location
-        self.config_id = config_id
-        self.routine_id = routine_id
-        self.award_level = award_level
-        self.award_points = award_points
+        self.uSkaterConfig = uSkaterConfig
         self.uSkaterUUID = uSkaterUUID
 
 
-class Event_Performance(Base):
-    '''
-    This table should describe any kind of informal or unscanctioned
-    performance. Showcases and seasonal shows are a great example of this.
-
-    Currently based on limited USFSA data
-    '''
-
-    __tablename__ = 'e_performance'
-    __table_args__ = {'extend_existing': True}
-
-    id = Column(Integer, primary_key=True)
-    performance_date = Column(DateTime)
-    performance_type = Column(Integer)
-    performance_cost = Column(Float)
-    performance_location = Column(Integer)
-    config_id = Column(Integer)
-    routine_id = Column(Integer)
-    award_level = Column(Integer)
-    award_points = Column(Integer)
-    uSkaterUUID = Column(Integer)
-
-    def __init__(
-        self,
-        performance_date,
-        performance_type,
-        performance_cost,
-        performance_location,
-        config_id,
-        routine_id,
-        award_level,
-        award_points,
-        uSkaterUUID,
-            ):
-
-        self.performance_date = performance_date
-        self.performance_type = performance_type
-        self.performance_cost = performance_cost
-        self.performance_location = performance_location
-        self.config_id = config_id
-        self.routine_id = routine_id
-        self.award_level = award_level
-        self.award_points = award_points
-        self.uSkaterUUID = uSkaterUUID
-
-
-class Event_Test(Base):
-    '''
-    This table describes any testing done by a skater.
-    Currently based on limited USFSA data.
-    '''
-
-    __tablename__ = 'e_test'
-    __table_args__ = {'extend_existing': True}
-
-    id = Column(Integer, primary_key=True)
-    test_date = Column(DateTime)
-    test_type = Column(Integer)
-    test_cost = Column(Float)
-    test_location = Column(Integer)
-    config_id = Column(Integer)
-    routine_id = Column(Integer)
-    award_level = Column(Integer)
-    award_points = Column(Integer)
-    uSkaterUUID = Column(Integer)
-
-    def __init__(
-        self,
-        test_date,
-        test_type,
-        test_cost,
-        test_location,
-        config_id,
-        routine_id,
-        award_level,
-        award_points,
-        uSkaterUUID,
-            ):
-
-        self.test_date = test_date
-        self.test_type = test_type
-        self.test_cost = test_cost
-        self.test_location = test_location
-        self.config_id = config_id
-        self.routine_id = routine_id
-        self.award_level = award_level
-        self.award_points = award_points
-        self.uSkaterUUID = uSkaterUUID
+    def __repr__(self):
+        return f"<Event(label={self.event_label}, date={self.event_date}, level={self.event_level})>"

@@ -27,12 +27,8 @@ class uSkaterConfig(Base):
     uSkaterComboOff = Column(UUID, unique=True)
     uSkaterRinkPref = Column(UUID)
     uSkaterMaintPref = Column(Integer)
-    uSkaterSolo = Column(Integer)
-    uSkaterParent = Column(Integer)
-    uSkaterPair = Column(Integer)
-    uSkaterCoach = Column(Integer)
     activeCoach = Column(UUID)
-    org_Club_Name = Column(String)
+    org_Club = Column(UUID)
     org_Club_Join_Date = Column(DateTime)
     org_USFSA_number = Column(Integer)
 
@@ -51,10 +47,6 @@ class uSkaterConfig(Base):
         uSkaterComboOff,
         uSkaterRinkPref,
         uSkaterMaintPref,
-        uSkaterSolo,
-        uSkaterIsParent,
-        uSkaterSubUUIDs,
-        uSkaterIsCoach,
         activeCoach,
         org_Club_Name,
         org_Club_Join_Date,
@@ -74,10 +66,6 @@ class uSkaterConfig(Base):
         self.uSkaterComboOff = uSkaterComboOff
         self.uSkaterRinkPref = uSkaterRinkPref
         self.uSkaterMaintPref = uSkaterMaintPref
-        self.uSkaterSolo = uSkaterSolo
-        self.uSkaterIsParent = uSkaterIsParent
-        self.uSkaterSubUUIDs = uSkaterSubUUIDs
-        self.uSkaterIsCoach = uSkaterIsCoach
         self.activeCoach = activeCoach
         self.org_Club_Name = org_Club_Name
         self.org_Club_Join_Date = org_Club_Join_Date

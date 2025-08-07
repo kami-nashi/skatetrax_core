@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, Float
+from sqlalchemy import Column, String, Integer, DateTime, Float, UUID, ForeignKey
 from .base import Base
 
 
@@ -19,8 +19,8 @@ class uSkaterMaint(Base):
     m_location = Column(Integer)
     m_notes = Column(String)
     m_roh = Column(Integer)
-    uSkateConfig = Column(Integer)
-    uSkaterUUID = Column(Integer)
+    uSkaterConfig = Column(UUID, ForeignKey("uSkateConfig.sConfigID", ondelete='CASCADE'))
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
     def __init__(
         self,
