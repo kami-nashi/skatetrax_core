@@ -8,7 +8,7 @@ from models.t_coaches import Coaches
 from models.t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
 from models.t_classes import Skate_School
 
-from models.t_skaterMeta import uSkaterConfig
+from models.t_skaterMeta import uSkaterConfig, uSkaterRoles
 
 session = Session()
 
@@ -107,6 +107,15 @@ class User_Data():
         for data in skater_data:
             try:
                 session.add(uSkaterConfig(**data))
+                session.commit()
+            except Exception as why:
+                print(why)
+        session.close()
+
+    def add_skater_roles(role_data):
+        for data in role_data:
+            try:
+                session.add(uSkaterRoles(**data))
                 session.commit()
             except Exception as why:
                 print(why)

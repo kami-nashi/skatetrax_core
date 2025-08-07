@@ -83,7 +83,7 @@ class uSkaterConfig(Base):
         self.org_USFSA_number = org_USFSA_number
 
 
-class SkaterType(Base):
+class uSkaterRoles(Base):
     """
     This table should hold various types of skater roles. An adult skater may
     also be other types, such as a coach AND guardian. To grow these columns, 
@@ -104,9 +104,11 @@ class SkaterType(Base):
 
     def __init__(
         self,
-        label
+        id = None,
+        label = None
             ):
-
+        
+        self.id = id
         self.label = label
     
     def __repr__(self):

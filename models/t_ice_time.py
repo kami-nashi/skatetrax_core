@@ -12,7 +12,7 @@ class Ice_Time(Base):
     ice_cost = Column(Float)
     skate_type = Column(UUID, ForeignKey("ice_type.ice_type_id", ondelete='CASCADE'))
     coach_time = Column(Integer)
-    coach_id = Column(UUID, ForeignKey("coaches.id", ondelete='CASCADE'))
+    coach_id = Column(UUID, ForeignKey("coaches.coach_id", ondelete='CASCADE'))
     coach_cost = Column(Float)
     has_video = Column(Integer)
     has_notes = Column(Integer)

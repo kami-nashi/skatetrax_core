@@ -1,7 +1,7 @@
 import argparse
 #from models import coaches, locations, insert_data, equipment
 
-from models.ops.updaters import Location_Data, Coach_Data
+from models.ops.updaters import Location_Data, Coach_Data, User_Data
 
 from models.cyberconnect2 import engine
 from datetime import datetime, timezone
@@ -12,7 +12,7 @@ from .base import Base
 from .t_ice_time import Ice_Time
 from .t_icetype import IceType
 from .t_locations import Locations, Punch_cards
-from .t_skaterMeta import uSkaterConfig, SkaterType
+from .t_skaterMeta import uSkaterConfig, uSkaterRoles
 
 # items for configuring skates, cost of gear
 from .t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots, uSkaterEquipManifest
@@ -71,16 +71,25 @@ if __name__ == "__main__":
                 'coach_Fname': '-',
                 'coach_Lname': '-',
                 'coach_rate': '0',
-                'uSkaterUUID': '487d43b5-0a4d-4dc4-8cc2-ab06870a10bf',
-                'coach_phone': 0,
-                'coach_email': 'none',
-                'coach_ijs_id': 0,
-                'coach_usfsa_id': 0
+                'coach_id': '487d43b5-0a4d-4dc4-8cc2-ab06870a10bf',
+                'coach_phone': None,
+                'coach_email': None,
+                'coach_ijs_id': None,
+                'coach_usfsa_id': None,
+                'uSkaterUUID': None
                 }
         ]
 
-        Location_Data.add_ice_type(ice_types)
-        Coach_Data.add_coaches(default_coaches)
+        role_data = [
+            {'id': '1', 'label': 'Adult - Regular Smegular'},
+            {'id': '2', 'label': 'Coach - Probably also an adult skater, but specifically a coach'},
+            {'id': '3', 'label': 'Minor - Under 18, requires guardian representation and care'},
+            {'id': '4', 'label': 'Guardian - Maybe not a skater, but a parent of one or more.'}
+        ]
+
+        User_Data.add_skater_roles(role_data)
+        #Location_Data.add_ice_type(ice_types)
+        #Coach_Data.add_coaches(default_coaches)
 
     if args.drop:
         Base.metadata.drop_all(bind=engine)

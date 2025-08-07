@@ -29,21 +29,23 @@ class Coaches(Base):
     __tablename__ = 'coaches'
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[UUIDV4] = mapped_column(primary_key=True, unique=True, default=uuid4)
+    id = Column(Integer, primary_key=True)
+    coach_id: Mapped[UUIDV4] = mapped_column(unique=True, default=uuid4)
 
     coach_Fname = Column(String)
     coach_Lname = Column(String)
     coach_rate = Column(Float)
 
-    coach_usfsa_id = Column(Integer, unique=True)
-    coach_ijs_id = Column(Integer, unique=True)
-    coach_phone = Column(Integer, unique=True)
-    coach_email = Column(String, unique=True)
+    coach_usfsa_id = Column(Integer, nullable=True)
+    coach_ijs_id = Column(Integer, nullable=True)
+    coach_phone = Column(Integer, nullable=True)
+    coach_email = Column(String, nullable=True)
     
-    uSkaterUUID = Column(UUID)
+    uSkaterUUID = Column(UUID, nullable=True)
 
     def __init__(
         self,
+        coach_id,
         coach_Fname,
         coach_Lname,
         coach_rate,
@@ -51,9 +53,10 @@ class Coaches(Base):
         coach_email,
         coach_ijs_id,
         coach_usfsa_id,
-        uSkaterUUID
+        uSkaterUUID = None
         ):
         
+        self.coach_id = coach_id
         self.coach_Fname = coach_Fname
         self.coach_Lname = coach_Lname
         self.coach_rate = coach_rate
