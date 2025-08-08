@@ -16,9 +16,9 @@ class uSkaterMaint(Base):
     m_date = Column(DateTime)
     m_hours_on = Column(Integer)
     m_cost = Column(Float)
-    m_location = Column(Integer)
-    m_notes = Column(String)
-    m_roh = Column(Integer)
+    m_location = Column(UUID)
+    m_notes = Column(String, nullable=True)
+    m_roh = Column(String, nullable=True)
     uSkaterConfig = Column(UUID, ForeignKey("uSkateConfig.sConfigID", ondelete='CASCADE'))
     uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
@@ -29,6 +29,7 @@ class uSkaterMaint(Base):
         m_cost,
         m_location,
         m_notes,
+        m_roh,
         uSkateConfig,
         uSkaterUUID,
             ):
@@ -38,5 +39,6 @@ class uSkaterMaint(Base):
         self.m_cost = m_cost
         self.m_location = m_location
         self.m_notes = m_notes
+        self.m_roh = m_roh
         self.uSkateConfig = uSkateConfig
         self.uSkaterUUID = uSkaterUUID
