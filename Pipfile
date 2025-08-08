@@ -8,6 +8,7 @@ sqlalchemy = "*"
 psycopg2 = "*"
 pandas = "*"
 marshmallow = "*"
+Werkzeug = "*"
 
 [dev-packages]
 
