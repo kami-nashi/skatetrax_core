@@ -33,9 +33,9 @@ class Journal_Videos(Base):
     id = Column(Integer, primary_key=True)
     video_date = Column(DateTime)
     video_url = Column(String)
-    video_platform = Column(String)
-    video_type = Column(String)
-    video_name = Column(String)
+    video_platform = Column(String, nullable=True)
+    video_type = Column(String, nullable=True)
+    video_name = Column(String, nullable=True)
     uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
     def __init__(

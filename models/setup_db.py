@@ -9,6 +9,7 @@ from .base import Base
 
 # import table models to be created
 # start with basic needs for functionality
+from .t_auth import uAuthTable
 from .t_ice_time import Ice_Time
 from .t_icetype import IceType
 from .t_locations import Locations, Punch_cards
@@ -88,7 +89,7 @@ if __name__ == "__main__":
         ]
 
         User_Data.add_skater_roles(role_data)
-        #Location_Data.add_ice_type(ice_types)
+        Location_Data.add_ice_type(ice_types)
         #Coach_Data.add_coaches(default_coaches)
 
     if args.drop:
@@ -96,6 +97,3 @@ if __name__ == "__main__":
 
 # to create, run: python -m models.setup_db -c
 # to drop all, run: python -m models.setup_db -d
-
-# this script is a complete mess. PEP8 complains about the imports, which are all over the place.
-# note sure how to address this, if you're reading this - I sincerely wish it was better. :)

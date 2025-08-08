@@ -16,19 +16,41 @@ class Club_Membership(Base):
     __tablename__ = 'club_membership'
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
-    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    club_id = Column(UUID)
     club_home_rink = Column(UUID, ForeignKey("locations.rink_id", ondelete='CASCADE'))
     club_cost = Column(Float)
     club_name = Column(String)
 
     def __init__(
         self,
+        club_id,
         club_home_rink,
         club_cost,
-        club_name,
+        club_name
             ):
 
+        self.club_id = club_id
         self.club_home_rink = club_home_rink
         self.club_cost = club_cost
         self.club_name = club_name
+
+
+class Club_Members(Base):
+    __tablename__ = 'club_members'
+    __table_args__ = {'extend_existing': True}
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    club_id = Column(UUID)
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
+    joined_date = Column(DateTime, nullable=True)
+    membership_fee = Column(Float)
+    
+    def __init__(self, club_id, uSkaterUUID, joined_date, membership_fee):
+        self.club_id = club_id
+        self.uSkaterUUID = uSkaterUUID
+        self.joined_date = joined_date
+        self.membership_fee = membership_fee
+
+    def __repr__(self):
+        return f"<Club_Member skater={self.uSkaterUUID} club={self.club_id}>"
