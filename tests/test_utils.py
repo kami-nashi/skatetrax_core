@@ -1,4 +1,4 @@
-from utils.common import minutes_to_hours, currency_usd
+from skatetrax.utils.common import minutes_to_hours, currency_usd
 
 # run via PYTHONPATH=. pytest tests/test_utils.py
 

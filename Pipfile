@@ -9,6 +9,7 @@ psycopg2 = "*"
 pandas = "*"
 marshmallow = "*"
 Werkzeug = "*"
+pytest = "*"
 
 [dev-packages]
 
