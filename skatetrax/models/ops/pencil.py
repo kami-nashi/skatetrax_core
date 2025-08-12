@@ -1,14 +1,18 @@
 from sqlalchemy import func
-from models.cyberconnect2 import Session, engine
+from ..cyberconnect2 import Session, engine
 
-from models.t_ice_time import Ice_Time
-from models.t_locations import Locations
-from models.t_icetype import IceType
-from models.t_coaches import Coaches
-from models.t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
-from models.t_classes import Skate_School
+from ..t_auth import uAuthTable
 
-from models.t_skaterMeta import uSkaterConfig, uSkaterRoles
+from ..t_ice_time import Ice_Time
+from ..t_locations import Locations, Punch_cards
+from ..t_maint import uSkaterMaint
+from ..t_icetype import IceType
+from ..t_coaches import Coaches
+from ..t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
+from ..t_classes import Skate_School
+from ..t_memberships import Club_Membership, Club_Members
+
+from ..t_skaterMeta import uSkaterConfig, uSkaterRoles
 
 session = Session()
 
@@ -54,8 +58,14 @@ class Equipment_Data():
                 print(why)
         session.close()
 
-    def add_maintenance():
-        print('work in progress')
+    def add_maintenance(maint_sess):
+        for maint in maint_sess:
+            try:
+                session.add(uSkaterMaint(**maint))
+                session.commit()
+            except Exception as why:
+                print(why)
+        session.close()
 
 
 class Ice_Session():
@@ -99,6 +109,15 @@ class Location_Data():
             except Exception as why:
                 print(why)
         session.close()
+        
+    def add_punchcard(cards):
+        for card in cards:
+            try:
+                session.add(Punch_cards(**card))
+                session.commit()
+            except Exception as why:
+                print(why)
+        session.close()
 
 
 class User_Data():
@@ -116,6 +135,28 @@ class User_Data():
         for data in role_data:
             try:
                 session.add(uSkaterRoles(**data))
+                session.commit()
+            except Exception as why:
+                print(why)
+        session.close()
+        
+
+class Club_Data():
+    
+    def add_club(club_data):
+        for data in club_data:
+            try:
+                session.add(Club_Membership(**data))
+                session.commit()
+            except Exception as why:
+                print(why)
+        session.close()
+        
+
+    def add_member(member_data):
+        for data in member_data:
+            try:
+                session.add(Club_Members(**data))
                 session.commit()
             except Exception as why:
                 print(why)
