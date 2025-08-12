@@ -13,11 +13,9 @@ dependencies = [
     "Werkzeug"
 ]
 
-
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["skatetrax*"]
-
 
 [build-system]
 requires = ["setuptools>=61.0"]

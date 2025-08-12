@@ -1,16 +1,16 @@
 import pandas as pd
 # from sqlalchemy import func
-from models.cyberconnect2 import Session, engine
+from ..cyberconnect2 import Session, engine
 
-from utils.common import Timelines
+from ...utils.common import Timelines
 # from utils.common import minutes_to_hours, currency_usd
 
-from models.t_ice_time import Ice_Time
-from models.t_locations import Locations
-from models.t_icetype import IceType
-from models.t_coaches import Coaches
-from models.t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
-from models.ops.data_aggregates import Sessions_Time
+from ..t_ice_time import Ice_Time
+from ..t_locations import Locations
+from ..t_icetype import IceType
+from ..t_coaches import Coaches
+from ..t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
+from ..ops.data_aggregates import Sessions_Time
 # from models.t_classes import Skate_School
 
 # from models.t_skaterMeta import uSkaterConfig

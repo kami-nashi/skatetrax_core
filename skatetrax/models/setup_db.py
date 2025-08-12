@@ -1,9 +1,9 @@
 import argparse
 #from models import coaches, locations, insert_data, equipment
 
-from models.ops.updaters import Location_Data, Coach_Data, User_Data
+from skatetrax.models.ops.pencil import Location_Data, Coach_Data, User_Data
 
-from models.cyberconnect2 import engine
+from skatetrax.models.cyberconnect2 import engine
 from datetime import datetime, timezone
 from .base import Base
 
