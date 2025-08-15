@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
         User_Data.add_skater_roles(role_data)
         Location_Data.add_ice_type(ice_types)
-        #Coach_Data.add_coaches(default_coaches)
+        Coach_Data.add_coaches(default_coaches)
 
     if args.drop:
         Base.metadata.drop_all(bind=engine)

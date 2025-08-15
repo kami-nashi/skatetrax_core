@@ -1,19 +1,136 @@
+from datetime import date
+import calendar
 from sqlalchemy import func
 from ...models.cyberconnect2 import Session
-
-from ...utils.common import Timelines
+from ...utils.timeframe_generator import TIMEFRAMES
 from ...utils.common import minutes_to_hours, currency_usd
 
-from ..t_ice_time import Ice_Time
-# from models.t_locations import Locations
-# from models.t_icetype import IceType
-# from models.t_coaches import Coaches
 from ..t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
-# from models.t_classes import Skate_School
-
 from ..t_skaterMeta import uSkaterConfig
 
-session = Session()
+
+class SkaterAggregates:
+    """
+    Aggregator for skater metrics including ice_time, coach_time,
+    costs, and now group sessions.
+    """
+    GROUP_SESSION_IDS = ["db32094e-9b0d-42a5-b87f-cd47729b6c65"]
+    COMPETITION_IDS = ["7a3b3441-04d6-4b5a-afb6-eb556022c2e7",
+                       "88f87085-927d-4b77-b1c9-77d6de7c2d28"]
+
+
+    def __init__(self, uSkaterUUID, session=None):
+        self.uSkaterUUID = uSkaterUUID
+        self.external_session = session
+
+
+    def _get_session(self):
+        return self.external_session or Session()
+
+
+    def aggregate(self, model, field, start_date=None, end_date=None, ice_type_ids=None):
+        """Sum field for this skater, optionally filtered by start/end dates and ice_type."""
+        with self._get_session() as s:
+            column = getattr(model, field)
+            q = s.query(func.sum(column)).filter(model.uSkaterUUID == self.uSkaterUUID)
+            if start_date and end_date:
+                q = q.filter(model.date >= start_date, model.date <= end_date)
+            if ice_type_ids:
+                q = q.filter(model.skate_type.in_(ice_type_ids))
+            result = q.scalar() or 0
+        return result
+
+
+    # Convenience shortcuts
+    @minutes_to_hours
+    def skated(self, timeframe=None):
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        return self.aggregate(Ice_Time, "ice_time", start, end)
+
+
+    @minutes_to_hours
+    def coached(self, timeframe=None):
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        return self.aggregate(Ice_Time, "coach_time", start, end)
+
+
+    @currency_usd
+    def ice_cost(self, timeframe=None):
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        return self.aggregate(Ice_Time, "ice_cost", start, end)
+
+
+    @currency_usd
+    def coach_cost(self, timeframe=None):
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        return self.aggregate(Ice_Time, "coach_cost", start, end)
+
+
+    # Internal helper to resolve timeframe strings
+    def _resolve_timeframe(self, timeframe):
+        if timeframe is None or timeframe == "total":
+            return None, None
+        fn = TIMEFRAMES.get(timeframe)
+        if not fn:
+            raise ValueError(f"Unknown timeframe: {timeframe}")
+        dates = fn()
+        if dates is None:
+            return None, None
+        return dates["start"], dates["end"]
+
+
+    def monthly_times_json(self):
+        """Return JSON for last 12 months with ice_time, coach_time, group sessions, competitions."""
+        from ..t_ice_time import Ice_Time
+
+
+        def minutes_to_hours_float(m):
+            return m / 60.0
+
+
+        today = date.today()
+        months = []
+        for i in range(11, -1, -1):
+            year = today.year
+            month = today.month - i
+            if month <= 0:
+                month += 12
+                year -= 1
+            months.append((year, month, calendar.month_name[month]))
+
+        data = {"months": [], "ice_time": [], "coach_time": [], "group_sessions": [], "competitions": []}
+
+        for year, month, month_name in months:
+            start = date(year, month, 1)
+            end_day = calendar.monthrange(year, month)[1]
+            end = date(year, month, end_day)
+
+            ice = self.aggregate(Ice_Time, "ice_time", start, end)
+            coach = self.aggregate(Ice_Time, "coach_time", start, end)
+            group = self.aggregate(Ice_Time, "ice_time", start, end, ice_type_ids=self.GROUP_SESSION_IDS)
+
+            # Competition flag
+            with self._get_session() as s:
+                comp_count = (
+                    s.query(Ice_Time)
+                    .filter(Ice_Time.uSkaterUUID == self.uSkaterUUID)
+                    .filter(Ice_Time.skate_type.in_(self.COMPETITION_IDS))
+                    .filter(Ice_Time.date >= start, Ice_Time.date <= end)
+                    .count()
+                )
+            comp_flag = 1 if comp_count > 0 else 0
+
+            data["months"].append(month_name)
+            data["ice_time"].append(minutes_to_hours_float(ice))
+            data["coach_time"].append(minutes_to_hours_float(coach))
+            data["group_sessions"].append(minutes_to_hours_float(group))
+            data["competitions"].append(comp_flag)
+
+        return data
 
 
 class Equipment():
@@ -36,232 +153,6 @@ class Equipment():
                 .one()
             )
         return data._asdict()
-
-
-class Sessions_Time():
-
-    @minutes_to_hours
-    def skated_total(uSkaterUUID):
-        '''
-        Get all minutes for a skater, by uSkaterUUID.
-        '''
-
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.ice_time))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .scalar()
-                        )
-        return minutes
-
-    @minutes_to_hours
-    def skated_current_month(uSkaterUUID):
-        tl = Timelines.current_month()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.ice_time))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['last'])
-                .filter(Ice_Time.date <= tl['first'])
-                .scalar()
-                        )
-        return minutes
-
-    @minutes_to_hours
-    def skated_last_month(uSkaterUUID):
-        tl = Timelines.last_month()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.ice_time))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['first'])
-                .filter(Ice_Time.date <= tl['last'])
-                .scalar()
-                        )
-        return minutes
-
-    @minutes_to_hours
-    def skated_3month(uSkaterUUID):
-        tl = Timelines.last_3m()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.ice_time))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['first'])
-                .filter(Ice_Time.date <= tl['last'])
-                .scalar()
-                        )
-        return minutes
-
-    @minutes_to_hours
-    def coached_total(uSkaterUUID):
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.coach_time))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .scalar()
-                        )
-        return minutes
-
-    @minutes_to_hours
-    def coached_current_month(uSkaterUUID):
-        tl = Timelines.current_month()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.coach_time))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['last'])
-                .filter(Ice_Time.date <= tl['first'])
-                .scalar()
-                        )
-        return minutes
-
-    @minutes_to_hours
-    def coached_last_month(uSkaterUUID):
-        tl = Timelines.last_month()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.coach_time))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['first'])
-                .filter(Ice_Time.date <= tl['last'])
-                .scalar()
-                        )
-        return minutes
-
-    @minutes_to_hours
-    def coached_3month(uSkaterUUID):
-        tl = Timelines.last_3m()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.coach_time))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['first'])
-                .filter(Ice_Time.date <= tl['last'])
-                .scalar()
-                        )
-        return minutes
-
-    @minutes_to_hours
-    def ice_time_config_in_minutes(uSkaterUUID, uSkaterConfig):
-        '''
-        Get all minutes for a specific configuration of a skater.
-        Requires the uSkaterConfig as an ID to match on.
-        '''
-
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.ice_time))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .where(Ice_Time.uSkaterConfig == uSkaterConfig)
-                .scalar()
-                        )
-        return minutes
-
-
-class Sessions_Costs():
-
-    @currency_usd
-    def ice_total(uSkaterUUID):
-        '''
-        Get cost of all skate entries for a skater, by uSkaterUUID.
-        '''
-
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.ice_cost))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .scalar()
-                        )
-        return minutes
-
-    @currency_usd
-    def ice_current_month(uSkaterUUID):
-        tl = Timelines.current_month()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.ice_cost))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['last'])
-                .filter(Ice_Time.date <= tl['first'])
-                .scalar()
-                        )
-        return minutes
-
-    @currency_usd
-    def ice_last_month(uSkaterUUID):
-        tl = Timelines.last_month()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.ice_cost))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['first'])
-                .filter(Ice_Time.date <= tl['last'])
-                .scalar()
-                        )
-        return minutes
-
-    @currency_usd
-    def ice_3month(uSkaterUUID):
-        tl = Timelines.last_3m()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.ice_cost))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['first'])
-                .filter(Ice_Time.date <= tl['last'])
-                .scalar()
-                        )
-        return minutes
-
-    @currency_usd
-    def coached_total(uSkaterUUID):
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.coach_cost))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .scalar()
-                        )
-        return minutes
-
-    @currency_usd
-    def coached_current_month(uSkaterUUID):
-        tl = Timelines.current_month()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.coach_cost))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['last'])
-                .filter(Ice_Time.date <= tl['first'])
-                .scalar()
-                        )
-        return minutes
-
-    @currency_usd
-    def coached_last_month(uSkaterUUID):
-        tl = Timelines.last_month()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.coach_cost))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['first'])
-                .filter(Ice_Time.date <= tl['last'])
-                .scalar()
-                        )
-        return minutes
-
-    @currency_usd
-    def coached_3month(uSkaterUUID):
-        tl = Timelines.last_3m()
-        with Session() as s:
-            minutes = (
-                s.query(func.sum(Ice_Time.coach_cost))
-                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-                .filter(Ice_Time.date >= tl['first'])
-                .filter(Ice_Time.date <= tl['last'])
-                .scalar()
-                        )
-        return minutes
 
 
 class UserMeta():

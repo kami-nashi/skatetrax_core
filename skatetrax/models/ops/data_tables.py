@@ -10,7 +10,7 @@ from ..t_locations import Locations
 from ..t_icetype import IceType
 from ..t_coaches import Coaches
 from ..t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
-from ..ops.data_aggregates import Sessions_Time
+#from ..ops.data_aggregates import Sessions_Time
 # from models.t_classes import Skate_School
 
 # from models.t_skaterMeta import uSkaterConfig
