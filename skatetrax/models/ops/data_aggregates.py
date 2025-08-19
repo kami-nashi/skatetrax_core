@@ -7,6 +7,9 @@ from ...utils.common import minutes_to_hours, currency_usd
 
 from ..t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
 from ..t_skaterMeta import uSkaterConfig
+from ..t_maint import uSkaterMaint
+from ..t_ice_time import Ice_Time as IceTime
+from ..t_locations import Locations
 
 
 class SkaterAggregates:
@@ -175,3 +178,111 @@ class UserMeta():
                 .scalar()
                 )
         return data
+
+
+
+class uMaintenanceV4:
+    """
+    Aggregator for maintenance-related metrics (sharpenings, cycles, costs).
+    Provides data for both chart visualizations and maintenance detail views.
+    """
+
+    def __init__(self, uSkaterUUID, session=None):
+        self.uSkaterUUID = uSkaterUUID
+        self.external_session = session
+
+    def _get_session(self):
+        return self.external_session or Session()
+
+    def maint_clock(self):
+        """
+        Returns a dict with maintenance cycle status for charting.
+
+        {
+            "clock_minutes": preferred sharpening cycle in minutes,
+            "active_minutes": minutes since last sharpening,
+            "remaining_minutes": remaining until next sharpening
+        }
+        """
+        with self._get_session() as s:
+            # Get skater’s preferred sharpening cycle (hours → minutes)
+            pref_hours = (
+                s.query(uSkaterConfig.uSkaterMaintPref)
+                .filter(uSkaterConfig.uSkaterUUID == self.uSkaterUUID)
+                .scalar()
+            )
+            pref_minutes = (pref_hours or 0) * 60
+
+            # Find most recent maintenance record (sharpening event)
+            last_maint_date = (
+                s.query(func.max(uSkaterMaint.m_date))
+                .filter(uSkaterMaint.uSkaterUUID == self.uSkaterUUID)
+                .scalar()
+            )
+
+            active_minutes = 0
+            if last_maint_date:
+                # Sum ice_time minutes since that sharpening
+                active_minutes = (
+                    s.query(func.sum(IceTime.ice_time))
+                    .filter(
+                        IceTime.uSkaterUUID == self.uSkaterUUID,
+                        IceTime.date >= last_maint_date
+                    )
+                    .scalar()
+                    or 0
+                )
+
+        return {
+            "clock_minutes": minutes_to_hours(lambda: pref_minutes or 0)(),
+            "active_minutes": minutes_to_hours(lambda: active_minutes or 0)(),
+            "remaining_minutes": minutes_to_hours(lambda: pref_minutes - active_minutes or 0)()
+        }
+    
+    
+    def maint_data(self):
+        with self._get_session() as session:
+
+            active_config = (
+                session.query(uSkaterConfig)
+                .filter(uSkaterConfig.uSkaterUUID == self.uSkaterUUID)
+                .first()
+            )
+
+            skater_config = (
+                session.query(uSkateConfig)
+                .filter(uSkateConfig.sConfigID == active_config.uSkaterComboIce)
+                .first()
+            )
+
+            blades = (
+                session.query(uSkaterMaint, Locations)
+                .join(Locations, uSkaterMaint.m_location == Locations.rink_id)
+                .filter(uSkaterMaint.uSkaterUUID == self.uSkaterUUID)
+                .filter(uSkaterMaint.uSkaterBladesID == skater_config.uSkaterBladesID)
+                .all()
+            )
+            
+        total_minutes = sum(m.m_hours_on or 0 for m, _ in blades)
+        total_minutes = minutes_to_hours(lambda: total_minutes)()
+        sharpen_count = len(blades)  # each row = one sharpening iteration
+
+        history = [
+            {
+                "date": maint.m_date.isoformat() if maint.m_date else None,
+                "hours_on": minutes_to_hours(lambda: maint.m_hours_on or 0)(),
+                "cost": maint.m_cost,
+                "location": loc.rink_name if loc else None,
+                "roh": maint.m_roh,
+                "notes": maint.m_notes,
+            }
+            for maint, loc in blades
+        ]
+
+        return {
+            "meta": {
+                "total_hours": total_minutes,
+                "sharpenings": sharpen_count,
+            },
+            "history": history,
+        }
