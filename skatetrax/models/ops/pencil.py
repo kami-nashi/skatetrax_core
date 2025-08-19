@@ -1,4 +1,6 @@
 from sqlalchemy import func
+from datetime import datetime
+
 from ..cyberconnect2 import Session, engine
 
 from ..t_auth import uAuthTable
@@ -161,3 +163,29 @@ class Club_Data():
             except Exception as why:
                 print(why)
         session.close()
+        
+### Incoming Changes from Legacy
+
+class AddSession:
+    def __init__(self, db_session):
+        """Store the SQLAlchemy session."""
+        self.db_session = db_session
+
+    def __call__(self, data):
+        """
+        Insert a new Ice_Time row.
+
+        Args:
+            data (dict): Keys must match Ice_Time columns.
+        Returns:
+            Ice_Time: The newly created row object.
+        """
+        # Create new row
+        new_row = Ice_Time(**data)
+
+        # Add and commit
+        self.db_session.add(new_row)
+        self.db_session.commit()
+        self.db_session.refresh(new_row)
+
+        return new_row
