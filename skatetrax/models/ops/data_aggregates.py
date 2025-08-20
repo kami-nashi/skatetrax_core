@@ -10,6 +10,7 @@ from ..t_skaterMeta import uSkaterConfig
 from ..t_maint import uSkaterMaint
 from ..t_ice_time import Ice_Time as IceTime
 from ..t_locations import Locations
+# from ..t_classes import Skate_School
 
 
 class SkaterAggregates:
@@ -44,6 +45,28 @@ class SkaterAggregates:
         return result
 
 
+    def sum_costs_by_model(self, model, cost_column="class_cost", start_date=None, end_date=None):
+        """
+        Generic helper to sum costs for this skater across any model
+        that has a uSkaterUUID column and a cost column.
+        """
+        with self._get_session() as s:
+            total = (
+                s.query(func.coalesce(func.sum(getattr(model, cost_column)), 0))
+                .filter(model.uSkaterUUID == self.uSkaterUUID)
+            )
+            if start_date and end_date:
+                total = total.filter(model.date_start >= start_date, model.date_start <= end_date)
+            return total.scalar() or 0
+
+
+    @minutes_to_hours
+    def group_time(self, timeframe=None):
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        return self.aggregate(Ice_Time, "ice_time", start, end, ice_type_ids=self.GROUP_SESSION_IDS)
+
+
     # Convenience shortcuts
     @minutes_to_hours
     def skated(self, timeframe=None):
@@ -59,12 +82,32 @@ class SkaterAggregates:
         return self.aggregate(Ice_Time, "coach_time", start, end)
 
 
+    @minutes_to_hours
+    def group_time(self, timeframe=None):
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        return self.aggregate(
+            Ice_Time,
+            "ice_time",               # still summing ice_time minutes
+            start,
+            end,
+            ice_type_ids=self.GROUP_SESSION_IDS
+        )
+
+
     @currency_usd
     def ice_cost(self, timeframe=None):
         from ..t_ice_time import Ice_Time
         start, end = self._resolve_timeframe(timeframe)
         return self.aggregate(Ice_Time, "ice_cost", start, end)
 
+
+    @currency_usd
+    def school_class_cost(self, timeframe=None):
+        from ..t_classes import Skate_School
+        start, end = self._resolve_timeframe(timeframe)
+        return self.sum_costs_by_model(Skate_School, "class_cost", start, end)
+    
 
     @currency_usd
     def coach_cost(self, timeframe=None):
