@@ -1,6 +1,8 @@
+from sqlalchemy import func, select
 from datetime import date
 import calendar
-from sqlalchemy import func
+
+
 from ...models.cyberconnect2 import Session
 from ...utils.timeframe_generator import TIMEFRAMES
 from ...utils.common import minutes_to_hours, currency_usd
@@ -10,7 +12,6 @@ from ..t_skaterMeta import uSkaterConfig
 from ..t_maint import uSkaterMaint
 from ..t_ice_time import Ice_Time as IceTime
 from ..t_locations import Locations
-# from ..t_classes import Skate_School
 
 
 class SkaterAggregates:
@@ -201,26 +202,59 @@ class Equipment():
         return data._asdict()
 
 
-class UserMeta():
+class UserMeta:
+    def __init__(self, uSkaterUUID, session=None):
+        self.uSkaterUUID = uSkaterUUID
+        self.external_session = session
 
-    def skater_profile(uSkaterUUID):
-        with Session() as s:
-            data = (
-                s.query(uSkaterConfig)
-                .where(uSkaterConfig.uSkaterUUID == uSkaterUUID)
-                .one()
-                )
+    def _get_session(self):
+        return self.external_session or Session()
 
-        return data
+    def skater_profile(self):
+        from ..t_skaterMeta import uSkaterConfig
+        with self._get_session() as s:
+            stmt = select(uSkaterConfig).where(uSkaterConfig.uSkaterUUID == self.uSkaterUUID)
+            return s.execute(stmt).scalar_one_or_none()
 
-    def skater_config_active_ice(uSkaterUUID):
-        with Session() as s:
-            data = (
-                s.query(uSkaterConfig.uSkaterComboIce)
-                .where(uSkaterConfig.uSkaterUUID == uSkaterUUID)
-                .scalar()
-                )
-        return data
+    def default_rink(self):
+        profile = self.skater_profile()
+        return profile.rink_id if profile else None
+
+    def default_skate_type(self):
+        profile = self.skater_profile()
+        return profile.skate_type if profile else None
+
+    def default_coach(self):
+        profile = self.skater_profile()
+        return profile.coach_id if profile else None
+
+    def to_dict(self):
+        profile = self.skater_profile()
+        if not profile:
+            return {}
+        return {
+            'date_created':  profile.date_created,
+            'uSkaterUUID': profile.uSkaterUUID,
+            'uSkaterFname': profile.uSkaterFname,
+            'uSkaterMname': profile.uSkaterMname,
+            'uSkaterLname': profile.uSkaterLname,
+            'uSkaterZip': profile.uSkaterZip,
+            'uSkaterCity': profile.uSkaterCity,
+            'uSkaterState': profile.uSkaterState,
+            'uSkaterCountry': profile.uSkaterCountry,
+            'uSkaterRoles': profile.uSkaterRoles,
+            'uSkaterComboIce': profile.uSkaterComboIce,
+            'uSkaterComboOff': profile.uSkaterComboOff,
+            'uSkaterRinkPref': profile.uSkaterRinkPref,
+            'uSkaterMaintPref': profile.uSkaterMaintPref,
+            'activeCoach': profile.activeCoach,
+            'org_Club_Name': profile.org_Club,
+            'org_Club_Join_Date': profile.org_Club_Join_Date,
+            'org_USFSA_number':profile.org_USFSA_number
+        }
+
+
+
 
 
 

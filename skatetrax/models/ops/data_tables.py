@@ -55,6 +55,21 @@ class Equipment():
 
 class Sessions_Tables():
 
+    def ice_type():
+        '''
+        Returns contents of ice_type (lookup) table
+        '''
+
+        df = pd.read_sql_query(
+            sql=Session().query(
+                    IceType
+                )
+            .statement, con=engine
+        )
+    
+        return df
+        
+        
     def ice_time(uSkaterUUID):
         '''
         lists all ice sessions of a particular skater via uSkaterUUID
@@ -177,4 +192,29 @@ class Skating_Locations():
             .statement, con=engine
         )
 
+        return df
+
+
+class CoachesTable():
+    # future note, we'll need a way to allow contact info to be returned
+    # when skater/coach affiliation is established
+    
+    def list_coaches():
+        '''
+        Returns a dataframe consisting of the data in the coaches table
+        Filters out sensitive data, for basic session use
+        '''
+        
+        df = pd.read_sql_query(
+            sql=Session().query(
+                Coaches.coach_id,
+                Coaches.coach_Fname,
+                Coaches.coach_Lname,
+                Coaches.coach_rate,
+                Coaches.coach_usfsa_id,
+                Coaches.coach_ijs_id
+                )
+            .statement, con=engine
+        )
+    
         return df
