@@ -73,7 +73,7 @@ class uSkateConfig(Base):
 
     sConfigID: Mapped[UUIDV4] = mapped_column(primary_key=True, default=uuid4)
     date_created = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    uSkaterUUID = Column(UUID)
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
     uSkaterBladesID = Column(UUID)
     uSkaterBootsID = Column(UUID)
     sConfigType = Column(Integer)  # surface type
@@ -115,7 +115,7 @@ class uSkaterBlades(Base):
     bladesModel = Column(String)
     bladesSize = Column(String)
     bladesPurchaseAmount = Column(Float)
-    uSkaterUUID = Column(UUID)
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
     def __init__(
         self,
@@ -153,7 +153,7 @@ class uSkaterBoots(Base):
     bootsModel = Column(String)
     bootsSize = Column(String)
     bootsPurchaseAmount = Column(Float)
-    uSkaterUUID = Column(UUID)
+    uSkaterUUID = Column(UUID, ForeignKey("uSkaterConfig.uSkaterUUID", ondelete='CASCADE'))
 
     def __init__(
         self,
