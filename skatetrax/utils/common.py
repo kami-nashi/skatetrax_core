@@ -27,7 +27,7 @@ def minutes_to_hours(func):
         if m is not None:
             h, m = divmod(m, 60)
         else:
-             return {'hours': 0, 'minutes': 0}
+            return {'hours': 0, 'minutes': 0.0}
         return {'hours': int(h), 'minutes': float(m)}
     return wrapper
 
