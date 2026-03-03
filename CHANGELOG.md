@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.2] - 2026-03-03
+### Added
+- `skatetrax/auth/` package with `service.py` -- centralizes all auth business logic (user CRUD, roles, invite tokens, password reset tokens) as plain functions with no Flask dependency. Designed to be the single entry point for auth operations from any consumer (`st_bea`, admin scripts, future CLI tools).
+
+## [4.1.1] - 2026-03-03
+### Added
+- `password_reset_tokens` table for time-limited, single-use forgot-password tokens. (Migration: `005_pw_reset`)
+- `PasswordResetToken` model with `is_valid()` (checks `used` flag and 1-hour expiry).
+
+## [4.1.0] - 2026-03-01
+### Added
+- `fs_uniquifier` column on `uAuthTable` for Flask-Security-Too 4.0+ session token management. Independent of `uSkaterUUID`, which remains the data-aggregation key. (Migration: `002_fs_uniquifier`)
+- `role` table and `user_roles` junction table for FST-compatible role management. Seeded from existing `u_skater_types`. (Migration: `003_role_tables`)
+- Data migration from `uSkaterConfig.uSkaterRoles` JSONB into `user_roles` junction rows.
+- `invite_tokens` table for invite-only beta registration. Supports single-use, multi-use, and unlimited tokens with optional expiration. (Migration: `004_invite_tokens`)
+- `Role` model with `get_permissions()` for FST compatibility.
+- `UserRoles` junction model.
+- `InviteToken` model with `is_valid()` validation (checks expiry and use count; `max_uses=0` means unlimited).
+- `roles` relationship and `has_role()` method on `uAuthTable`.
+- `active`, `is_authenticated`, `is_active` properties and `get_id()` (returns `fs_uniquifier`) on `uAuthTable` for Flask-Login/FST integration.
+
+### Changed
+- `uAuthTable.get_id()` now returns `fs_uniquifier` instead of `str(id)` for FST session management.
+
 ## [4.0.0] - 2025-08-12
 ### Added
 - Complete rewrite of backend with PostgreSQL and `skatetrax_core` package.
