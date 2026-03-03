@@ -33,40 +33,54 @@ def _resolve_tz(row_tz, fallback):
 
 class Equipment():
 
-    def skate_configs(uSkaterUUID):
+    def skate_configs(uSkaterUUID, session=None):
         '''
         Lists all boot and blade combinations defined for a skater,
         including total ice time (minutes) per config.
         '''
-
-        df = pd.read_sql_query(
-            sql=create_session().query(
-                uSkateConfig.sConfigID,
-                uSkateConfig.date_created,
-                uSkateConfig.sActiveFlag,
-                uSkaterBoots.bootsName,
-                uSkaterBoots.bootsModel,
-                uSkaterBlades.bladesName,
-                uSkaterBlades.bladesModel,
+        def _run(sess, engine):
+            return pd.read_sql_query(
+                sql=sess.query(
+                    uSkateConfig.sConfigID,
+                    uSkateConfig.date_created,
+                    uSkateConfig.sActiveFlag,
+                    uSkaterBoots.bootsName,
+                    uSkaterBoots.bootsModel,
+                    uSkaterBlades.bladesName,
+                    uSkaterBlades.bladesModel,
                 )
-            .where(uSkateConfig.uSkaterUUID == uSkaterUUID)
-            .join(uSkaterBoots, uSkateConfig.uSkaterBootsID == uSkaterBoots.bootsID)
-            .join(uSkaterBlades, uSkateConfig.uSkaterBladesID == uSkaterBlades.bladesID)
-            .statement, con=get_engine()
-        )
+                .where(uSkateConfig.uSkaterUUID == uSkaterUUID)
+                .join(uSkaterBoots, uSkateConfig.uSkaterBootsID == uSkaterBoots.bootsID)
+                .join(uSkaterBlades, uSkateConfig.uSkaterBladesID == uSkaterBlades.bladesID)
+                .statement, con=engine
+            )
+
+        if session is not None:
+            engine = session.get_bind()
+            df = _run(session, engine)
+        else:
+            with create_session() as sess:
+                df = _run(sess, get_engine())
 
         if df.empty:
             return df
 
-        hours_df = pd.read_sql_query(
-            sql=create_session().query(
-                Ice_Time.uSkaterConfig.label('sConfigID'),
-                func.coalesce(func.sum(Ice_Time.ice_time), 0).label('hours')
+        def _hours(sess, engine):
+            return pd.read_sql_query(
+                sql=sess.query(
+                    Ice_Time.uSkaterConfig.label('sConfigID'),
+                    func.coalesce(func.sum(Ice_Time.ice_time), 0).label('hours')
                 )
-            .filter(Ice_Time.uSkaterUUID == uSkaterUUID)
-            .group_by(Ice_Time.uSkaterConfig)
-            .statement, con=get_engine()
-        )
+                .filter(Ice_Time.uSkaterUUID == uSkaterUUID)
+                .group_by(Ice_Time.uSkaterConfig)
+                .statement, con=engine
+            )
+
+        if session is not None:
+            hours_df = _hours(session, session.get_bind())
+        else:
+            with create_session() as sess:
+                hours_df = _hours(sess, get_engine())
 
         df = df.merge(hours_df, on='sConfigID', how='left')
         df['hours'] = df['hours'].fillna(0).astype(int)
@@ -75,34 +89,48 @@ class Equipment():
 
         return df
 
-    def boots(uSkaterUUID):
+    def boots(uSkaterUUID, session=None):
         '''Lists all boots for a skater with hours skated per boot.'''
-        df = pd.read_sql_query(
-            sql=create_session().query(
-                uSkaterBoots.bootsID,
-                uSkaterBoots.date_created,
-                uSkaterBoots.bootsName,
-                uSkaterBoots.bootsModel,
-                uSkaterBoots.bootsSize,
-                uSkaterBoots.bootsPurchaseAmount,
+        def _run(sess, engine):
+            return pd.read_sql_query(
+                sql=sess.query(
+                    uSkaterBoots.bootsID,
+                    uSkaterBoots.date_created,
+                    uSkaterBoots.bootsName,
+                    uSkaterBoots.bootsModel,
+                    uSkaterBoots.bootsSize,
+                    uSkaterBoots.bootsPurchaseAmount,
                 )
-            .where(uSkaterBoots.uSkaterUUID == uSkaterUUID)
-            .statement, con=get_engine()
-        )
+                .where(uSkaterBoots.uSkaterUUID == uSkaterUUID)
+                .statement, con=engine
+            )
+
+        if session is not None:
+            df = _run(session, session.get_bind())
+        else:
+            with create_session() as sess:
+                df = _run(sess, get_engine())
 
         if df.empty:
             return df
 
-        hours_df = pd.read_sql_query(
-            sql=create_session().query(
-                uSkateConfig.uSkaterBootsID.label('bootsID'),
-                func.coalesce(func.sum(Ice_Time.ice_time), 0).label('hours')
+        def _hours(sess, engine):
+            return pd.read_sql_query(
+                sql=sess.query(
+                    uSkateConfig.uSkaterBootsID.label('bootsID'),
+                    func.coalesce(func.sum(Ice_Time.ice_time), 0).label('hours')
                 )
-            .join(Ice_Time, Ice_Time.uSkaterConfig == uSkateConfig.sConfigID)
-            .filter(uSkateConfig.uSkaterUUID == uSkaterUUID)
-            .group_by(uSkateConfig.uSkaterBootsID)
-            .statement, con=get_engine()
-        )
+                .join(Ice_Time, Ice_Time.uSkaterConfig == uSkateConfig.sConfigID)
+                .filter(uSkateConfig.uSkaterUUID == uSkaterUUID)
+                .group_by(uSkateConfig.uSkaterBootsID)
+                .statement, con=engine
+            )
+
+        if session is not None:
+            hours_df = _hours(session, session.get_bind())
+        else:
+            with create_session() as sess:
+                hours_df = _hours(sess, get_engine())
 
         df = df.merge(hours_df, on='bootsID', how='left')
         df['hours'] = df['hours'].fillna(0).astype(int)
@@ -111,33 +139,47 @@ class Equipment():
 
         return df
 
-    def blades(uSkaterUUID):
+    def blades(uSkaterUUID, session=None):
         '''Lists all blades for a skater with sharpening count per blade.'''
-        df = pd.read_sql_query(
-            sql=create_session().query(
-                uSkaterBlades.bladesID,
-                uSkaterBlades.date_created,
-                uSkaterBlades.bladesName,
-                uSkaterBlades.bladesModel,
-                uSkaterBlades.bladesSize,
-                uSkaterBlades.bladesPurchaseAmount,
+        def _run(sess, engine):
+            return pd.read_sql_query(
+                sql=sess.query(
+                    uSkaterBlades.bladesID,
+                    uSkaterBlades.date_created,
+                    uSkaterBlades.bladesName,
+                    uSkaterBlades.bladesModel,
+                    uSkaterBlades.bladesSize,
+                    uSkaterBlades.bladesPurchaseAmount,
                 )
-            .where(uSkaterBlades.uSkaterUUID == uSkaterUUID)
-            .statement, con=get_engine()
-        )
+                .where(uSkaterBlades.uSkaterUUID == uSkaterUUID)
+                .statement, con=engine
+            )
+
+        if session is not None:
+            df = _run(session, session.get_bind())
+        else:
+            with create_session() as sess:
+                df = _run(sess, get_engine())
 
         if df.empty:
             return df
 
-        maint_df = pd.read_sql_query(
-            sql=create_session().query(
-                uSkaterMaint.uSkaterBladesID.label('bladesID'),
-                func.count(uSkaterMaint.id).label('sharpenings')
+        def _maint(sess, engine):
+            return pd.read_sql_query(
+                sql=sess.query(
+                    uSkaterMaint.uSkaterBladesID.label('bladesID'),
+                    func.count(uSkaterMaint.id).label('sharpenings')
                 )
-            .filter(uSkaterMaint.uSkaterUUID == uSkaterUUID)
-            .group_by(uSkaterMaint.uSkaterBladesID)
-            .statement, con=get_engine()
-        )
+                .filter(uSkaterMaint.uSkaterUUID == uSkaterUUID)
+                .group_by(uSkaterMaint.uSkaterBladesID)
+                .statement, con=engine
+            )
+
+        if session is not None:
+            maint_df = _maint(session, session.get_bind())
+        else:
+            with create_session() as sess:
+                maint_df = _maint(sess, get_engine())
 
         df = df.merge(maint_df, on='bladesID', how='left')
         df['sharpenings'] = df['sharpenings'].fillna(0).astype(int)
@@ -149,22 +191,23 @@ class Equipment():
 
 class Sessions_Tables():
 
-    def ice_type():
+    def ice_type(session=None):
         '''
         Returns contents of ice_type (lookup) table
         '''
-
-        df = pd.read_sql_query(
-            sql=create_session().query(
-                    IceType
+        if session is not None:
+            df = pd.read_sql_query(
+                sql=session.query(IceType).statement, con=session.get_bind()
+            )
+        else:
+            with create_session() as sess:
+                df = pd.read_sql_query(
+                    sql=sess.query(IceType).statement, con=get_engine()
                 )
-            .statement, con=get_engine()
-        )
-    
         return df
         
         
-    def ice_time(uSkaterUUID, tz=None):
+    def ice_time(uSkaterUUID, tz=None, session=None):
         '''
         lists all ice sessions of a particular skater via uSkaterUUID
         Returns a pandas dataframe containing joined data of:
@@ -173,29 +216,35 @@ class Sessions_Tables():
         If tz is provided, session dates are converted from UTC to that
         IANA timezone. When omitted, dates are returned as stored (UTC).
         '''
-
-        df = pd.read_sql_query(
-            sql=create_session().query(
-                Ice_Time.date,
-                Ice_Time.ice_time,
-                Ice_Time.ice_cost,
-                IceType.ice_type,
-                Ice_Time.coach_time,
-                Coaches.coach_Fname,
-                Coaches.coach_Lname,
-                Ice_Time.coach_cost,
-                Locations.rink_name,
-                Locations.rink_city,
-                Locations.rink_state,
-                Locations.rink_tz,
+        def _run(sess, engine):
+            return pd.read_sql_query(
+                sql=sess.query(
+                    Ice_Time.date,
+                    Ice_Time.ice_time,
+                    Ice_Time.ice_cost,
+                    IceType.ice_type,
+                    Ice_Time.coach_time,
+                    Coaches.coach_Fname,
+                    Coaches.coach_Lname,
+                    Ice_Time.coach_cost,
+                    Locations.rink_name,
+                    Locations.rink_city,
+                    Locations.rink_state,
+                    Locations.rink_tz,
                 )
-            .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-            .outerjoin(Locations, Ice_Time.rink_id == Locations.rink_id)
-            .outerjoin(IceType, Ice_Time.skate_type == IceType.ice_type_id)
-            .outerjoin(Coaches, Ice_Time.coach_id == Coaches.coach_id)
-            .order_by(Ice_Time.date.desc())
-            .statement, con=get_engine()
-        )
+                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
+                .outerjoin(Locations, Ice_Time.rink_id == Locations.rink_id)
+                .outerjoin(IceType, Ice_Time.skate_type == IceType.ice_type_id)
+                .outerjoin(Coaches, Ice_Time.coach_id == Coaches.coach_id)
+                .order_by(Ice_Time.date.desc())
+                .statement, con=engine
+            )
+
+        if session is not None:
+            df = _run(session, session.get_bind())
+        else:
+            with create_session() as sess:
+                df = _run(sess, get_engine())
 
         df['coach'] = df['coach_Fname'].fillna('') + ' ' + df['coach_Lname'].fillna('')
         df = df.drop(columns=['coach_Fname', 'coach_Lname'])
@@ -210,7 +259,7 @@ class Sessions_Tables():
 
         return df
 
-    def ice_time_current_month(uSkaterUUID, tz=None):
+    def ice_time_current_month(uSkaterUUID, tz=None, session=None):
         '''
         lists all ice sessions of a particular skater via uSkaterUUID
         for the current month.
@@ -219,30 +268,37 @@ class Sessions_Tables():
         '''
         tl = Timelines.current_month(tz=tz)
 
-        df = pd.read_sql_query(
-            sql=create_session().query(
-                Ice_Time.date,
-                Ice_Time.ice_time,
-                Ice_Time.ice_cost,
-                IceType.ice_type,
-                Ice_Time.coach_time,
-                Coaches.coach_Fname,
-                Coaches.coach_Lname,
-                Ice_Time.coach_cost,
-                Locations.rink_name,
-                Locations.rink_city,
-                Locations.rink_state,
-                Locations.rink_tz,
+        def _run(sess, engine):
+            return pd.read_sql_query(
+                sql=sess.query(
+                    Ice_Time.date,
+                    Ice_Time.ice_time,
+                    Ice_Time.ice_cost,
+                    IceType.ice_type,
+                    Ice_Time.coach_time,
+                    Coaches.coach_Fname,
+                    Coaches.coach_Lname,
+                    Ice_Time.coach_cost,
+                    Locations.rink_name,
+                    Locations.rink_city,
+                    Locations.rink_state,
+                    Locations.rink_tz,
                 )
-            .where(Ice_Time.uSkaterUUID == uSkaterUUID)
-            .filter(Ice_Time.date >= tl['last'])
-            .filter(Ice_Time.date <= tl['first'])
-            .outerjoin(Locations, Ice_Time.rink_id == Locations.rink_id)
-            .outerjoin(IceType, Ice_Time.skate_type == IceType.ice_type_id)
-            .outerjoin(Coaches, Ice_Time.coach_id == Coaches.coach_id)
-            .order_by(Ice_Time.date.desc())
-            .statement, con=get_engine()
-        )
+                .where(Ice_Time.uSkaterUUID == uSkaterUUID)
+                .filter(Ice_Time.date >= tl['last'])
+                .filter(Ice_Time.date <= tl['first'])
+                .outerjoin(Locations, Ice_Time.rink_id == Locations.rink_id)
+                .outerjoin(IceType, Ice_Time.skate_type == IceType.ice_type_id)
+                .outerjoin(Coaches, Ice_Time.coach_id == Coaches.coach_id)
+                .order_by(Ice_Time.date.desc())
+                .statement, con=engine
+            )
+
+        if session is not None:
+            df = _run(session, session.get_bind())
+        else:
+            with create_session() as sess:
+                df = _run(sess, get_engine())
 
         df['coach'] = df['coach_Fname'].fillna('') + ' ' + df['coach_Lname'].fillna('')
         df = df.drop(columns=['coach_Fname', 'coach_Lname'])
@@ -257,72 +313,87 @@ class Sessions_Tables():
 
         return df
 
-    def active_config(uSkaterUUID):
+    def active_config(uSkaterUUID, session=None):
         '''
         returns a pandas dataframe of only the current skate
         config combo for a specific uSkaterUUID
         '''
-
-        df = pd.read_sql_query(
-            sql=create_session()
-            .query(
-                uSkateConfig.date_created,
-                uSkaterBoots.bootsName,
-                uSkaterBoots.bootsModel,
-                uSkaterBlades.bladesName,
-                uSkaterBlades.bladesModel
-            )
-            .where(
-                (uSkateConfig.uSkaterUUID == uSkaterUUID)
-                & (uSkateConfig.sActiveFlag == 1)
+        def _run(sess, engine):
+            return pd.read_sql_query(
+                sql=sess.query(
+                    uSkateConfig.date_created,
+                    uSkaterBoots.bootsName,
+                    uSkaterBoots.bootsModel,
+                    uSkaterBlades.bladesName,
+                    uSkaterBlades.bladesModel
                 )
-            .join(uSkaterBoots, uSkateConfig.uSkaterBootsID == uSkaterBoots.bootsID)
-            .join(uSkaterBlades, uSkateConfig.uSkaterBladesID == uSkaterBlades.bladesID)
-            .statement, con=get_engine()
-        )
+                .where(
+                    (uSkateConfig.uSkaterUUID == uSkaterUUID)
+                    & (uSkateConfig.sActiveFlag == 1)
+                )
+                .join(uSkaterBoots, uSkateConfig.uSkaterBootsID == uSkaterBoots.bootsID)
+                .join(uSkaterBlades, uSkateConfig.uSkaterBladesID == uSkaterBlades.bladesID)
+                .statement, con=engine
+            )
 
+        if session is not None:
+            df = _run(session, session.get_bind())
+        else:
+            with create_session() as sess:
+                df = _run(sess, get_engine())
         return df
 
 
 class Skating_Locations():
 
-    def rinks():
+    def rinks(session=None):
         '''
         lists all ice sessions of a particular skater via uSkaterUUID
         Returns a pandas dataframe containing joined data of:
         date, ice session meta, coach meta, rink meta.
         '''
-
-        df = pd.read_sql_query(
-            sql=create_session().query(
-                Locations
+        if session is not None:
+            df = pd.read_sql_query(
+                sql=session.query(Locations).statement, con=session.get_bind()
+            )
+        else:
+            with create_session() as sess:
+                df = pd.read_sql_query(
+                    sql=sess.query(Locations).statement, con=get_engine()
                 )
-            .statement, con=get_engine()
-        )
-
         return df
 
 
 class CoachesTable():
     # future note, we'll need a way to allow contact info to be returned
     # when skater/coach affiliation is established
-    
-    def list_coaches():
+
+    def list_coaches(session=None):
         '''
         Returns a dataframe consisting of the data in the coaches table
         Filters out sensitive data, for basic session use
         '''
-        
-        df = pd.read_sql_query(
-            sql=create_session().query(
-                Coaches.coach_id,
-                Coaches.coach_Fname,
-                Coaches.coach_Lname,
-                Coaches.coach_rate,
-                Coaches.coach_usfsa_id,
-                Coaches.coach_ijs_id
+        if session is not None:
+            df = pd.read_sql_query(
+                sql=session.query(
+                    Coaches.coach_id,
+                    Coaches.coach_Fname,
+                    Coaches.coach_Lname,
+                    Coaches.coach_rate,
+                    Coaches.coach_usfsa_id,
+                    Coaches.coach_ijs_id
+                ).statement, con=session.get_bind()
+            )
+        else:
+            with create_session() as sess:
+                df = pd.read_sql_query(
+                    sql=sess.query(
+                        Coaches.coach_id,
+                        Coaches.coach_Fname,
+                        Coaches.coach_Lname,
+                        Coaches.coach_rate,
+                        Coaches.coach_usfsa_id,
+                        Coaches.coach_ijs_id
+                    ).statement, con=get_engine()
                 )
-            .statement, con=get_engine()
-        )
-    
         return df

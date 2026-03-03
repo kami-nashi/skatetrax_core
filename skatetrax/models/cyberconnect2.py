@@ -13,8 +13,15 @@ def get_engine():
         db_name = os.environ.get('PGDB_NAME')
         db_user = os.environ.get('PGDB_USER')
         passwd = os.environ.get('PGDB_PASSWORD')
+        base = f'postgresql://{db_user}:{passwd}@{db_url}/{db_name}'
+        # Avoid GSSAPI/Kerberos when connecting to DO or other cloud Postgres.
+        params = ['gssencmode=disable']
+        sslmode = os.environ.get('PGDB_SSLMODE')
+        if sslmode:
+            params.append(f'sslmode={sslmode}')
+        url = f"{base}?{'&'.join(params)}"
         _engine = create_engine(
-            f'postgresql://{db_user}:{passwd}@{db_url}/{db_name}',
+            url,
             pool_size=3,
             max_overflow=2,
             pool_pre_ping=True,

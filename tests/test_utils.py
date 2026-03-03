@@ -27,7 +27,7 @@ class TestMinutesToHours:
         @minutes_to_hours
         def f():
             return None
-        assert f() == {'hours': 0, 'minutes': 0}
+        assert f() == {'hours': 0, 'minutes': 0.0}
 
     def test_large_value(self):
         @minutes_to_hours

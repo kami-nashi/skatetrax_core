@@ -29,17 +29,17 @@ class TestNewUserAllZeros:
     def test_skated_total_zero(self, seeded_session):
         sa = SkaterAggregates(NEW_USER_UUID, session=seeded_session)
         result = sa.skated("total")
-        assert result == {'hours': 0, 'minutes': 0}
+        assert result == {'hours': 0, 'minutes': 0.0}
 
     def test_coached_total_zero(self, seeded_session):
         sa = SkaterAggregates(NEW_USER_UUID, session=seeded_session)
         result = sa.coached("total")
-        assert result == {'hours': 0, 'minutes': 0}
+        assert result == {'hours': 0, 'minutes': 0.0}
 
     def test_group_time_total_zero(self, seeded_session):
         sa = SkaterAggregates(NEW_USER_UUID, session=seeded_session)
         result = sa.group_time("total")
-        assert result == {'hours': 0, 'minutes': 0}
+        assert result == {'hours': 0, 'minutes': 0.0}
 
     def test_ice_cost_total_zero(self, seeded_session):
         sa = SkaterAggregates(NEW_USER_UUID, session=seeded_session)

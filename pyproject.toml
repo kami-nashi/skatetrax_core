@@ -1,16 +1,17 @@
 [project]
 name = "skatetrax-core"
-version = "0.1.0"
+version = "4.1.2"
 description = "Core logic for Skatetrax"
 authors = [{ name = "Ashley L Young", email = "burning.rose85@gmail.com" }]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "sqlalchemy",
     "psycopg2",
     "pandas",
     "marshmallow",
-    "Werkzeug"
+    "Werkzeug",
+    "alembic"
 ]
 
 [tool.setuptools.packages.find]

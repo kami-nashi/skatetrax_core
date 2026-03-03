@@ -14,117 +14,167 @@ from ..t_skaterMeta import uSkaterConfig, uSkaterRoles
 
 class Coach_Data():
 
-    def add_coaches(coaches):
-        with create_session() as session:
+    def add_coaches(coaches, session=None):
+        def _run(sess):
             for coach in coaches:
                 try:
-                    session.add(Coaches(**coach))
-                    session.commit()
+                    sess.add(Coaches(**coach))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
 
 class Equipment_Data():
 
-    def add_blades(blades):
-        with create_session() as session:
+    def add_blades(blades, session=None):
+        def _run(sess):
             for blade in blades:
                 try:
-                    session.add(uSkaterBlades(**blade))
-                    session.commit()
+                    sess.add(uSkaterBlades(**blade))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
-    def add_boots(boots):
-        with create_session() as session:
+    def add_boots(boots, session=None):
+        def _run(sess):
             for boot in boots:
                 try:
-                    session.add(uSkaterBoots(**boot))
-                    session.commit()
+                    sess.add(uSkaterBoots(**boot))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
-    def add_combo(configs):
-        with create_session() as session:
+    def add_combo(configs, session=None):
+        def _run(sess):
             for config in configs:
                 try:
-                    session.add(uSkateConfig(**config))
-                    session.commit()
+                    sess.add(uSkateConfig(**config))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
-    def add_maintenance():
+    def add_maintenance(session=None):
         print('work in progress')
 
 
 class Ice_Session():
 
-    def add_skate_time(sessions):
-        with create_session() as session:
+    def add_skate_time(sessions, session=None):
+        def _run(sess):
             for asession in sessions:
                 try:
-                    session.add(Ice_Time(**asession))
-                    session.commit()
+                    sess.add(Ice_Time(**asession))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
-    def add_skate_school(classes):
-        with create_session() as session:
+    def add_skate_school(classes, session=None):
+        def _run(sess):
             for aclass in classes:
                 try:
-                    session.add(Skate_School(**aclass))
-                    session.commit()
+                    sess.add(Skate_School(**aclass))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
 
 class Location_Data():
 
-    def add_ice_type(types):
-        with create_session() as session:
+    def add_ice_type(types, session=None):
+        def _run(sess):
             for ice_type in types:
                 try:
-                    session.add(IceType(**ice_type))
-                    session.commit()
+                    sess.add(IceType(**ice_type))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
-    def add_ice_rink(rinks):
-        with create_session() as session:
+    def add_ice_rink(rinks, session=None):
+        def _run(sess):
             for rink in rinks:
                 try:
-                    session.add(Locations(**rink))
-                    session.commit()
+                    sess.add(Locations(**rink))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
 
 class User_Data():
 
-    def add_skater(skater_data):
-        with create_session() as session:
+    def add_skater(skater_data, session=None):
+        def _run(sess):
             for data in skater_data:
                 try:
-                    session.add(uSkaterConfig(**data))
-                    session.commit()
+                    sess.add(uSkaterConfig(**data))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
-    def add_skater_roles(role_data):
-        with create_session() as session:
+    def add_skater_roles(role_data, session=None):
+        def _run(sess):
             for data in role_data:
                 try:
-                    session.add(uSkaterRoles(**data))
-                    session.commit()
+                    sess.add(uSkaterRoles(**data))
+                    sess.commit()
                 except Exception as why:
-                    session.rollback()
+                    sess.rollback()
                     print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
