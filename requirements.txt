@@ -1,5 +1,8 @@
 sqlalchemy
 psycopg2
 pandas
-marshmallow 
+marshmallow
 Werkzeug
+alembic
+requests
+beautifulsoup4

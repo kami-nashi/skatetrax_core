@@ -1,7 +1,8 @@
 import argparse
 #from models import coaches, locations, insert_data, equipment
 
-from skatetrax.models.ops.pencil import Location_Data, Coach_Data, User_Data, Club_Data
+from skatetrax.models.ops.pencil import (Location_Data, Coach_Data, User_Data,
+                                         Club_Data, Event_Data)
 
 from skatetrax.models.cyberconnect2 import engine
 from datetime import datetime, timezone
@@ -13,7 +14,7 @@ from .t_auth import uAuthTable
 from .t_ice_time import Ice_Time
 from .t_icetype import IceType
 from .t_locations import Locations, Punch_cards
-from .t_skaterMeta import uSkaterConfig, uSkaterRoles
+from .t_skaterMeta import uSkaterConfig
 
 # items for configuring skates, cost of gear
 from .t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots, uSkaterEquipManifest
@@ -30,8 +31,10 @@ from .t_memberships import Club_Directory, Club_Members
 # camps, LTS, multiweek series
 from .t_classes import Skate_Camp, Skate_School
 
-# competitions, tests, etc
-from .t_events import  Events_Competition, CompetitionType
+# events (competitions, showcases, exhibitions) and scoring
+from .t_events import (GoverningBody, EventType, SkaterEvent, EventEntry,
+                       Score6_0, ScoreCJS, ScoreIJSComponent, ScoreIJSElement,
+                       EventDeduction, ImportLog)
 
 #Import table for skating tests
 from .t_tests import Event_Test
@@ -81,13 +84,6 @@ if __name__ == "__main__":
                 }
         ]
 
-        role_data = [
-            {'id': '1', 'label': 'Adult - Regular Smegular'},
-            {'id': '2', 'label': 'Coach - Probably also an adult skater, but specifically a coach'},
-            {'id': '3', 'label': 'Minor - Under 18, requires guardian representation and care'},
-            {'id': '4', 'label': 'Guardian - Maybe not a skater, but a parent of one or more.'}
-        ]
-
         default_clubs = [
             {
                 'club_id': 'c4dd2b9c-50f1-4f5b-a439-fd8f36a654d6',
@@ -114,11 +110,28 @@ if __name__ == "__main__":
             }
         ]
 
-        User_Data.add_skater_roles(role_data)
+        governing_bodies = [
+            {'id': 'a0000000-0000-0000-0000-000000000001', 'short_name': 'None', 'full_name': 'Unaffiliated'},
+            {'id': 'a0000000-0000-0000-0000-000000000002', 'short_name': 'USFSA', 'full_name': 'U.S. Figure Skating Association'},
+            {'id': 'a0000000-0000-0000-0000-000000000003', 'short_name': 'ISI', 'full_name': 'Ice Sports Industry'},
+            {'id': 'a0000000-0000-0000-0000-000000000004', 'short_name': 'Other', 'full_name': 'Other'},
+        ]
+
+        event_types = [
+            {'id': 'b0000000-0000-0000-0000-000000000001', 'category': 'Competition', 'scoring_system': '6.0', 'governing_body_id': 'a0000000-0000-0000-0000-000000000002'},
+            {'id': 'b0000000-0000-0000-0000-000000000002', 'category': 'Competition', 'scoring_system': '6.0', 'governing_body_id': 'a0000000-0000-0000-0000-000000000001'},
+            {'id': 'b0000000-0000-0000-0000-000000000003', 'category': 'Showcase', 'scoring_system': 'CJS', 'governing_body_id': 'a0000000-0000-0000-0000-000000000002'},
+            {'id': 'b0000000-0000-0000-0000-000000000004', 'category': 'Showcase', 'scoring_system': None, 'governing_body_id': 'a0000000-0000-0000-0000-000000000001'},
+            {'id': 'b0000000-0000-0000-0000-000000000005', 'category': 'Exhibition', 'scoring_system': None, 'governing_body_id': 'a0000000-0000-0000-0000-000000000001'},
+            {'id': 'b0000000-0000-0000-0000-000000000006', 'category': 'Competition', 'scoring_system': 'IJS', 'governing_body_id': 'a0000000-0000-0000-0000-000000000002'},
+        ]
+
         Location_Data.add_ice_type(ice_types)
         Location_Data.add_ice_rink(default_locations)
         Coach_Data.add_coaches(default_coaches)
         Club_Data.add_club(default_clubs)
+        Event_Data.add_governing_bodies(governing_bodies)
+        Event_Data.add_event_types(event_types)
 
     if args.drop:
         Base.metadata.drop_all(bind=engine)

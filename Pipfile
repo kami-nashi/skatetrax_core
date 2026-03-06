@@ -8,10 +8,13 @@ sqlalchemy = "*"
 psycopg2 = "*"
 pandas = "*"
 marshmallow = "*"
-Werkzeug = "*"
-pytest = "*"
+werkzeug = "*"
+alembic = "*"
+requests = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
+pytest = "*"
 
 [requires]
 python_version = "3.14"

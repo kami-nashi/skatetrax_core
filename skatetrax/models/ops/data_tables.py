@@ -397,3 +397,77 @@ class CoachesTable():
                     ).statement, con=get_engine()
                 )
         return df
+    
+    
+class EventsTable():
+
+    def list_competitions(uSkaterUUID, category=None, session=None):
+        """Competition history for a skater: one row per entry with parent event context.
+
+        Args:
+            uSkaterUUID: skater identifier.
+            category: optional string or list of strings to filter by
+                EventType.category (e.g. "Competition", ["Showcase", "Exhibition"]).
+                When None, all entries are returned regardless of category.
+            session: optional external SQLAlchemy session.
+
+        Returns a DataFrame with columns:
+            event_id, event_date, entry_date, event_label, event_cost,
+            hosting_club, location_name, location_city, location_state,
+            event_segment, event_level, placement, field_size, status, video_url
+        Ordered by event_date descending (most recent first).
+        """
+        from ..t_events import SkaterEvent, EventEntry, EventType, EventCost
+        from ..t_memberships import Club_Directory
+        from ..t_locations import Locations
+
+        def _run(sess, engine):
+            cost_sub = (
+                sess.query(
+                    EventCost.event_id,
+                    func.coalesce(
+                        func.sum(EventCost.amount * EventCost.quantity), 0
+                    ).label("total_cost"),
+                )
+                .group_by(EventCost.event_id)
+                .subquery()
+            )
+
+            q = sess.query(
+                SkaterEvent.id.label("event_id"),
+                SkaterEvent.event_date,
+                EventEntry.entry_date,
+                SkaterEvent.event_label,
+                func.coalesce(cost_sub.c.total_cost, 0).label("event_cost"),
+                Club_Directory.club_name.label("hosting_club"),
+                Locations.rink_name.label("location_name"),
+                Locations.rink_city.label("location_city"),
+                Locations.rink_state.label("location_state"),
+                EventEntry.event_segment,
+                EventEntry.event_level,
+                EventEntry.placement,
+                EventEntry.field_size,
+                EventEntry.status,
+                EventEntry.video_url,
+            ).join(EventEntry, SkaterEvent.id == EventEntry.event_id
+            ).outerjoin(Club_Directory, SkaterEvent.hosting_club == Club_Directory.club_id
+            ).outerjoin(Locations, SkaterEvent.event_location == Locations.rink_id
+            ).outerjoin(cost_sub, SkaterEvent.id == cost_sub.c.event_id)
+
+            if category is not None:
+                cats = [category] if isinstance(category, str) else list(category)
+                q = (q.outerjoin(EventType, EventEntry.event_type == EventType.id)
+                       .filter(EventType.category.in_(cats)))
+
+            q = (q.filter(SkaterEvent.uSkaterUUID == uSkaterUUID)
+                   .order_by(SkaterEvent.event_date.desc()))
+
+            return pd.read_sql_query(sql=q.statement, con=engine)
+
+        if session is not None:
+            df = _run(session, session.get_bind())
+        else:
+            with create_session() as sess:
+                df = _run(sess, get_engine())
+
+        return df

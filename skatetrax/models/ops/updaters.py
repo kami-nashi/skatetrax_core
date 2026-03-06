@@ -9,7 +9,7 @@ from ..t_coaches import Coaches
 from ..t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
 from ..t_classes import Skate_School
 
-from ..t_skaterMeta import uSkaterConfig, uSkaterRoles
+from ..t_skaterMeta import uSkaterConfig
 
 
 class Coach_Data():
@@ -154,21 +154,6 @@ class User_Data():
             for data in skater_data:
                 try:
                     sess.add(uSkaterConfig(**data))
-                    sess.commit()
-                except Exception as why:
-                    sess.rollback()
-                    print(why)
-        if session is not None:
-            _run(session)
-        else:
-            with create_session() as sess:
-                _run(sess)
-
-    def add_skater_roles(role_data, session=None):
-        def _run(sess):
-            for data in role_data:
-                try:
-                    sess.add(uSkaterRoles(**data))
                     sess.commit()
                 except Exception as why:
                     sess.rollback()

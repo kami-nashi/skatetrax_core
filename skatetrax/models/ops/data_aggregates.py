@@ -154,15 +154,21 @@ class SkaterAggregates:
 
 
     @currency_usd
-    def competition_cost(self):
-        """Total competition entry fees."""
-        from ..t_events import Events_Competition
+    def competition_cost(self, timeframe=None):
+        """Total competition/event fees (sum of cost line items)."""
+        from ..t_events import SkaterEvent, EventCost
+        start, end = self._resolve_timeframe(timeframe)
         with self._get_session() as s:
-            return (
-                s.query(func.coalesce(func.sum(Events_Competition.event_cost), 0))
-                .filter(Events_Competition.uSkaterUUID == self.uSkaterUUID)
-                .scalar()
+            q = (
+                s.query(func.coalesce(
+                    func.sum(EventCost.amount * EventCost.quantity), 0))
+                .join(SkaterEvent, EventCost.event_id == SkaterEvent.id)
+                .filter(SkaterEvent.uSkaterUUID == self.uSkaterUUID)
             )
+            if start and end:
+                q = q.filter(SkaterEvent.event_date >= start,
+                             SkaterEvent.event_date <= end)
+            return q.scalar()
 
 
     @currency_usd
@@ -188,6 +194,62 @@ class SkaterAggregates:
             return None, None
         return dates["start"], dates["end"]
 
+
+    # ── Competition / event counts ──────────────────────────────
+
+    def event_count(self, timeframe=None):
+        """Number of competitions/events entered."""
+        from ..t_events import SkaterEvent
+        start, end = self._resolve_timeframe(timeframe)
+        with self._get_session() as s:
+            q = (
+                s.query(func.count(SkaterEvent.id))
+                .filter(SkaterEvent.uSkaterUUID == self.uSkaterUUID)
+            )
+            if start and end:
+                q = q.filter(SkaterEvent.event_date >= start,
+                             SkaterEvent.event_date <= end)
+            return q.scalar()
+
+    def entry_count(self, timeframe=None):
+        """Number of individual entries (segments) across all events."""
+        from ..t_events import SkaterEvent, EventEntry
+        start, end = self._resolve_timeframe(timeframe)
+        with self._get_session() as s:
+            q = (
+                s.query(func.count(EventEntry.id))
+                .filter(EventEntry.uSkaterUUID == self.uSkaterUUID)
+            )
+            if start and end:
+                q = (
+                    q.join(SkaterEvent, EventEntry.event_id == SkaterEvent.id)
+                    .filter(SkaterEvent.event_date >= start,
+                            SkaterEvent.event_date <= end)
+                )
+            return q.scalar()
+
+    def podium_count(self, timeframe=None):
+        """Number of entries with placement 1st, 2nd, or 3rd."""
+        from ..t_events import SkaterEvent, EventEntry
+        start, end = self._resolve_timeframe(timeframe)
+        with self._get_session() as s:
+            q = (
+                s.query(func.count(EventEntry.id))
+                .filter(
+                    EventEntry.uSkaterUUID == self.uSkaterUUID,
+                    EventEntry.placement.isnot(None),
+                    EventEntry.placement <= 3,
+                )
+            )
+            if start and end:
+                q = (
+                    q.join(SkaterEvent, EventEntry.event_id == SkaterEvent.id)
+                    .filter(SkaterEvent.event_date >= start,
+                            SkaterEvent.event_date <= end)
+                )
+            return q.scalar()
+
+    # ── Chart data ───────────────────────────────────────────────
 
     def monthly_times_json(self):
         """Return JSON for last 12 months with ice_time, coach_time, group sessions, competitions."""
@@ -220,14 +282,14 @@ class SkaterAggregates:
             group = self.aggregate(Ice_Time, "ice_time", start, end, ice_type_ids=self.GROUP_SESSION_IDS)
             practice = max(ice - coach - group, 0)
 
-            # Competition flag
+            from ..t_events import SkaterEvent
             with self._get_session() as s:
                 comp_count = (
-                    s.query(Ice_Time)
-                    .filter(Ice_Time.uSkaterUUID == self.uSkaterUUID)
-                    .filter(Ice_Time.skate_type.in_(self.COMPETITION_IDS))
-                    .filter(Ice_Time.date >= start, Ice_Time.date <= end)
-                    .count()
+                    s.query(func.count(SkaterEvent.id))
+                    .filter(SkaterEvent.uSkaterUUID == self.uSkaterUUID)
+                    .filter(SkaterEvent.event_date >= start,
+                            SkaterEvent.event_date <= end)
+                    .scalar()
                 )
             comp_flag = 1 if comp_count > 0 else 0
 
@@ -354,7 +416,6 @@ class UserMeta:
             'uSkaterState': profile.uSkaterState,
             'uSkaterCountry': profile.uSkaterCountry,
             'uSkaterTZ': profile.uSkaterTZ,
-            'uSkaterRoles': profile.uSkaterRoles,
             'uSkaterComboIce': ice_config,
             'uSkaterComboOff': profile.uSkaterComboOff,
             'uSkaterRinkPref': row.rink_name,
@@ -560,3 +621,59 @@ class uMaintenanceV4:
 
         results.sort(key=lambda b: (not b["is_active"], b["blade_name"] or ""))
         return results
+
+
+class EventHistory:
+    """Query layer for competition / showcase / exhibition events."""
+
+    def __init__(self, uSkaterUUID, session=None):
+        self.uSkaterUUID = uSkaterUUID
+        self.external_session = session
+
+    def _get_session(self):
+        return self.external_session or create_session()
+
+    def list_events(self):
+        """All events for this skater, most recent first, with entry counts."""
+        from ..t_events import SkaterEvent, EventEntry, EventCost
+        with self._get_session() as s:
+            cost_sub = (
+                s.query(
+                    EventCost.event_id,
+                    func.coalesce(
+                        func.sum(EventCost.amount * EventCost.quantity), 0
+                    ).label("total_cost"),
+                )
+                .group_by(EventCost.event_id)
+                .subquery()
+            )
+            rows = (
+                s.query(
+                    SkaterEvent,
+                    func.count(EventEntry.id).label("entry_count"),
+                    func.coalesce(cost_sub.c.total_cost, 0).label("event_cost"),
+                )
+                .outerjoin(EventEntry, SkaterEvent.id == EventEntry.event_id)
+                .outerjoin(cost_sub, SkaterEvent.id == cost_sub.c.event_id)
+                .filter(SkaterEvent.uSkaterUUID == self.uSkaterUUID)
+                .group_by(SkaterEvent.id, cost_sub.c.total_cost)
+                .order_by(SkaterEvent.event_date.desc())
+                .all()
+            )
+            return [
+                {
+                    "id": str(event.id),
+                    "event_label": event.event_label,
+                    "event_date": event.event_date.isoformat() if event.event_date else None,
+                    "event_cost": float(cost),
+                    "hosting_club": event.hosting_club,
+                    "notes": event.notes,
+                    "entry_count": count,
+                }
+                for event, count, cost in rows
+            ]
+
+    def get_event_detail(self, event_id):
+        """Full detail for one event. Delegates to data_details.EventDetail."""
+        from .data_details import EventDetail
+        return EventDetail.get(event_id, self.uSkaterUUID)

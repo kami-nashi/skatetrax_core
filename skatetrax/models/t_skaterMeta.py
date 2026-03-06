@@ -1,5 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, UUID, ForeignKey, text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column, String, Integer, DateTime, UUID, ForeignKey
 from datetime import datetime, timezone
 
 from .base import Base
@@ -29,7 +28,6 @@ class uSkaterConfig(Base):
     uSkaterState = Column(String)
     uSkaterCountry = Column(String)
     uSkaterTZ = Column(String, default='UTC')
-    uSkaterRoles = Column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))
     
     #equip configs
     uSkaterComboIce = Column(UUID, unique=True)
@@ -63,7 +61,6 @@ class uSkaterConfig(Base):
         org_Club_Join_Date,
         org_USFSA_number,
         uSkaterTZ='UTC',
-        uSkaterRoles=None
             ):
 
         self.date_created = date_created
@@ -84,36 +81,3 @@ class uSkaterConfig(Base):
         self.org_Club_Join_Date = org_Club_Join_Date
         self.org_USFSA_number = org_USFSA_number
         self.uSkaterTZ = uSkaterTZ
-        self.uSkaterRoles = uSkaterRoles
-
-
-class uSkaterRoles(Base):
-    """
-    This table should hold various types of skater roles. An adult skater may
-    also be other types, such as a coach AND guardian. To grow these columns, 
-    simply add the name and mark the column as a boolean
-    
-    Starting options:
-    1: Adult - Regular Smegular
-    2: Coach - Probably also an adult skater, but specifically a coach
-    3: Minor - Under 18, requires guardian representation and care
-    4: Guardian - Maybe not a skater, but a parent of one or more.
-    """
-
-    __tablename__ = 'u_skater_types'
-    __table_args__ = {'extend_existing': True}
-    
-    id = Column(Integer, primary_key=True)
-    label = Column(String)
-
-    def __init__(
-        self,
-        id = None,
-        label = None
-            ):
-        
-        self.id = id
-        self.label = label
-    
-    def __repr__(self):
-        return f"<SkaterType(id={self.id}, label={self.label})>"
