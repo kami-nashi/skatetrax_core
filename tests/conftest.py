@@ -13,11 +13,21 @@ from skatetrax.models.base import Base
 NO_COACH_UUID = PyUUID("487d43b5-0a4d-4dc4-8cc2-ab06870a10bf")
 OFF_ICE_RINK_UUID = PyUUID("b261166b-9e7c-4a96-ab06-ec630deb3321")
 NO_CLUB_UUID = PyUUID("c4dd2b9c-50f1-4f5b-a439-fd8f36a654d6")
+TEST_CLUB_UUID = PyUUID("c4dd2b9c-50f1-4f5b-a439-fd8f36a654d7")
 
 FREESTYLE_WALKON_UUID = PyUUID("dc812842-a9a9-4902-b680-361420baffe5")
 FREESTYLE_PUNCH_UUID = PyUUID("0bcb0d7a-f5f0-41e2-bccb-78e80eb6673f")
 GROUP_CLASS_UUID = PyUUID("db32094e-9b0d-42a5-b87f-cd47729b6c65")
 PUBLIC_UUID = PyUUID("cedbb4e9-ab5b-4a14-a273-fd9783aaac86")
+
+GOVERNING_BODY_USFSA_UUID = PyUUID("aaaa0001-0001-0001-0001-000000000001")
+GOVERNING_BODY_ISI_UUID = PyUUID("aaaa0001-0001-0001-0001-000000000002")
+GOVERNING_BODY_NONE_UUID = PyUUID("aaaa0001-0001-0001-0001-000000000003")
+
+EVENT_TYPE_COMP_6_0_USFSA_UUID = PyUUID("bbbb0001-0001-0001-0001-000000000001")
+EVENT_TYPE_SHOWCASE_CJS_USFSA_UUID = PyUUID("bbbb0001-0001-0001-0001-000000000002")
+EVENT_TYPE_COMP_IJS_USFSA_UUID = PyUUID("bbbb0001-0001-0001-0001-000000000003")
+EVENT_TYPE_COMP_6_0_NONE_UUID = PyUUID("bbbb0001-0001-0001-0001-000000000004")
 
 TEST_RINK_UUID = uuid4()
 TEST_COACH_UUID = uuid4()
@@ -105,8 +115,28 @@ def seeded_session(db_session):
     from skatetrax.models.t_memberships import Club_Directory
     from skatetrax.models.t_skaterMeta import uSkaterConfig
     from skatetrax.models.t_equip import uSkateConfig, uSkaterBlades, uSkaterBoots
+    from skatetrax.models.t_events import GoverningBody, EventType
 
     now = datetime.now(timezone.utc)
+
+    # Governing bodies
+    db_session.add(GoverningBody("USFSA", "U.S. Figure Skating Association",
+                                 id=GOVERNING_BODY_USFSA_UUID))
+    db_session.add(GoverningBody("ISI", "Ice Sports Industry",
+                                 id=GOVERNING_BODY_ISI_UUID))
+    db_session.add(GoverningBody("None", "Unsanctioned",
+                                 id=GOVERNING_BODY_NONE_UUID))
+
+    # Event types
+    db_session.add(EventType("Competition", "6.0", GOVERNING_BODY_USFSA_UUID,
+                             id=EVENT_TYPE_COMP_6_0_USFSA_UUID))
+    db_session.add(EventType("Showcase", "CJS", GOVERNING_BODY_USFSA_UUID,
+                             id=EVENT_TYPE_SHOWCASE_CJS_USFSA_UUID))
+    db_session.add(EventType("Competition", "IJS", GOVERNING_BODY_USFSA_UUID,
+                             id=EVENT_TYPE_COMP_IJS_USFSA_UUID))
+    db_session.add(EventType("Competition", "6.0", GOVERNING_BODY_NONE_UUID,
+                             id=EVENT_TYPE_COMP_6_0_NONE_UUID))
+    db_session.flush()
 
     ice_types = [
         IceType(FREESTYLE_WALKON_UUID, "Free Style (Walk On)"),
@@ -144,6 +174,10 @@ def seeded_session(db_session):
         club_id=NO_CLUB_UUID, club_name="No Club",
         club_home_rink=None, club_cost=0,
     ))
+    db_session.add(Club_Directory(
+        club_id=TEST_CLUB_UUID, club_name="Test FSC",
+        club_home_rink=None, club_cost=50,
+    ))
 
     db_session.add(uSkaterConfig(
         date_created=now, uSkaterUUID=NEW_USER_UUID,
@@ -154,7 +188,7 @@ def seeded_session(db_session):
         uSkaterRinkPref=OFF_ICE_RINK_UUID, uSkaterMaintPref=21,
         activeCoach=NO_COACH_UUID, org_Club=NO_CLUB_UUID,
         org_Club_Join_Date=None, org_USFSA_number=None,
-        uSkaterTZ="America/New_York", uSkaterRoles=[1],
+        uSkaterTZ="America/New_York",
     ))
 
     db_session.add(uSkaterBoots(

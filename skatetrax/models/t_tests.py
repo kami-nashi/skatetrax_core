@@ -18,7 +18,7 @@ class Event_Test(Base):
     test_cost = Column(Float)
     test_label = Column(String)
     test_level = Column(String)
-    test_type =  Column(UUID, ForeignKey("e_competition_types.id", ondelete='CASCADE'))
+    test_type =  Column(UUID, ForeignKey("e_event_types.id", ondelete='CASCADE'))
     test_results = Column(String)
 
     test_date = Column(DateTime)

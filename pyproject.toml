@@ -1,6 +1,6 @@
 [project]
 name = "skatetrax-core"
-version = "4.1.2"
+version = "4.1.3"
 description = "Core logic for Skatetrax"
 authors = [{ name = "Ashley L Young", email = "burning.rose85@gmail.com" }]
 readme = "README.md"
@@ -11,7 +11,9 @@ dependencies = [
     "pandas",
     "marshmallow",
     "Werkzeug",
-    "alembic"
+    "alembic",
+    "requests",
+    "beautifulsoup4"
 ]
 
 [tool.setuptools.packages.find]
