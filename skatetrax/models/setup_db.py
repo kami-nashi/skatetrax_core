@@ -39,6 +39,9 @@ from .t_events import (GoverningBody, EventType, SkaterEvent, EventEntry,
 #Import table for skating tests
 from .t_tests import Event_Test
 
+# music library
+from .t_music import MusicTrack, MusicPlaylist, MusicPlaylistTrack
+
 # last, import supporting tables for things like notes, videos
 from .t_journal import Journal_Notes, Journal_Videos
 

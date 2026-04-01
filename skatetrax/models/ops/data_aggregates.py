@@ -249,26 +249,91 @@ class SkaterAggregates:
                 )
             return q.scalar()
 
+    # ── Skater card helpers ────────────────────────────────────────
+
+    def session_count(self, timeframe=None):
+        """Number of ice_time rows."""
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        with self._get_session() as s:
+            q = s.query(func.count(Ice_Time.ice_time_id)).filter(
+                Ice_Time.uSkaterUUID == self.uSkaterUUID)
+            if start and end:
+                q = q.filter(Ice_Time.date >= start, Ice_Time.date <= end)
+            return q.scalar()
+
+    def distinct_coach_count(self, timeframe=None):
+        """Number of distinct coaches skated with."""
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        with self._get_session() as s:
+            q = s.query(func.count(func.distinct(Ice_Time.coach_id))).filter(
+                Ice_Time.uSkaterUUID == self.uSkaterUUID,
+                Ice_Time.coach_time > 0)
+            if start and end:
+                q = q.filter(Ice_Time.date >= start, Ice_Time.date <= end)
+            return q.scalar()
+
+    def distinct_rink_count(self, timeframe=None):
+        """Number of distinct rinks skated at."""
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        with self._get_session() as s:
+            q = s.query(func.count(func.distinct(Ice_Time.rink_id))).filter(
+                Ice_Time.uSkaterUUID == self.uSkaterUUID)
+            if start and end:
+                q = q.filter(Ice_Time.date >= start, Ice_Time.date <= end)
+            return q.scalar()
+
+    def earliest_session_date(self):
+        """Date of first ever recorded session."""
+        from ..t_ice_time import Ice_Time
+        with self._get_session() as s:
+            return (
+                s.query(func.min(Ice_Time.date))
+                .filter(Ice_Time.uSkaterUUID == self.uSkaterUUID)
+                .scalar()
+            )
+
+    def rinks_list(self, timeframe=None):
+        """List of distinct rink names skated at."""
+        from ..t_ice_time import Ice_Time
+        start, end = self._resolve_timeframe(timeframe)
+        with self._get_session() as s:
+            q = (
+                s.query(Locations.rink_name)
+                .join(Ice_Time, Ice_Time.rink_id == Locations.rink_id)
+                .filter(Ice_Time.uSkaterUUID == self.uSkaterUUID)
+            )
+            if start and end:
+                q = q.filter(Ice_Time.date >= start, Ice_Time.date <= end)
+            rows = q.distinct().all()
+            return [r[0] for r in rows if r[0]]
+
     # ── Chart data ───────────────────────────────────────────────
 
-    def monthly_times_json(self):
-        """Return JSON for last 12 months with ice_time, coach_time, group sessions, competitions."""
-        from ..t_ice_time import Ice_Time
+    def monthly_times_json(self, months_back=0, window=12):
+        """Return JSON for a rolling window of months.
 
+        Args:
+            months_back: how many months to shift the window into the past (multiples of 3 typical).
+            window: how many months to include (default 12, API callers may request more).
+        """
+        from ..t_ice_time import Ice_Time
 
         def minutes_to_hours_float(m):
             return m / 60.0
 
-
         today = today_in_tz(self.tz)
         months = []
-        for i in range(11, -1, -1):
+        for i in range(window - 1 + months_back, months_back - 1, -1):
             year = today.year
             month = today.month - i
-            if month <= 0:
+            while month <= 0:
                 month += 12
                 year -= 1
-            months.append((year, month, calendar.month_name[month]))
+            label = f"{calendar.month_abbr[month]} '{str(year)[-2:]}"
+            months.append((year, month, label))
 
         data = {"months": [], "ice_time": [], "practice": [], "coach_time": [], "group_sessions": [], "competitions": []}
 
@@ -423,7 +488,9 @@ class UserMeta:
             'activeCoach': coach_name,
             'org_Club': row.club_name,
             'org_Club_Join_Date': profile.org_Club_Join_Date,
-            'org_USFSA_number': profile.org_USFSA_number
+            'org_USFSA_number': profile.org_USFSA_number,
+            'contact_preference': profile.contact_preference,
+            'share_token': str(profile.share_token) if profile.share_token else None,
         }
 
 

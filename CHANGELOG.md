@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.4] - 2026-03-31
+### Added
+- `contact_preference` column on `uSkaterConfig` (String, nullable, default `'email'`). Accepted values: `email`, `text`, `phone`, `social`.
+- `share_token` column on `uSkaterConfig` (UUID, nullable, unique) for shareable Skater Card URLs.
+- Migration `015_contact_pref_share_token`: adds both columns, backfills existing rows with `'email'`, and creates a unique constraint on `share_token`.
+- `SkaterAggregates` new methods:
+  - `session_count(timeframe)` -- count of ice_time rows.
+  - `distinct_coach_count(timeframe)` -- count of distinct coaches.
+  - `distinct_rink_count(timeframe)` -- count of distinct rinks.
+  - `earliest_session_date()` -- date of first recorded session.
+  - `rinks_list(timeframe)` -- list of distinct rink names.
+- `UserMeta.to_dict()` now includes `contact_preference` and `share_token`.
+
+### Changed
+- CI (`ci.yml`) now runs `pip-audit` as a non-blocking step to surface dependency vulnerabilities in PRs.
+
 ## [4.1.3] - 2026-03-05
 ### Added
 - Parent/child event structure: `e_events` (model: `SkaterEvent`) and `e_event_entries` (model: `EventEntry`) replace the flat `e_competition` table. One event contains one or more entries (individual segments).

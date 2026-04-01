@@ -16,6 +16,7 @@ from ..t_memberships import Club_Directory, Club_Members
 from ..t_events import (GoverningBody, EventType, SkaterEvent, EventEntry,
                         Score6_0, ScoreCJS, ScoreIJSComponent, ScoreIJSElement,
                         EventDeduction, EventCost)
+from ..t_music import MusicTrack, MusicPlaylist, MusicPlaylistTrack
 
 from ..t_skaterMeta import uSkaterConfig
 
@@ -472,6 +473,54 @@ class Event_Data():
         else:
             with create_session() as sess:
                 return _run(sess)
+
+
+class Music_Data():
+
+    def add_track(tracks, session=None):
+        def _run(sess):
+            for track in tracks:
+                try:
+                    sess.add(MusicTrack(**track))
+                    sess.commit()
+                except Exception as why:
+                    sess.rollback()
+                    print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
+
+    def add_playlist(playlists, session=None):
+        def _run(sess):
+            for pl in playlists:
+                try:
+                    sess.add(MusicPlaylist(**pl))
+                    sess.commit()
+                except Exception as why:
+                    sess.rollback()
+                    print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
+
+    def add_playlist_track(entries, session=None):
+        def _run(sess):
+            for entry in entries:
+                try:
+                    sess.add(MusicPlaylistTrack(**entry))
+                    sess.commit()
+                except Exception as why:
+                    sess.rollback()
+                    print(why)
+        if session is not None:
+            _run(session)
+        else:
+            with create_session() as sess:
+                _run(sess)
 
 
 ### Incoming Changes from Legacy

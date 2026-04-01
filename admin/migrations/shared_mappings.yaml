@@ -1,0 +1,44 @@
+# MariaDB integer ID -> Postgres UUID mappings
+# Shared/pooled data that applies to all migrated users
+
+locations:
+  1: "b3206edf-6027-4a34-a075-15ba83ac5a6b"   # Polar Ice Raleigh
+  2: "f6255fc0-bb01-4f4a-a2a1-b991481dd1e1"   # Cleland Ice Rink
+  3: "48ca4fc1-6e40-4102-8ca7-85b85846db23"   # Cary Polar Ice House
+  4: "92b3dcf8-3018-4d61-9cf7-f683846eb517"   # Las Vegas Ice Center
+  5: "71cfa9a4-976a-4294-93c9-7e41488ac175"   # AZ Ice
+  6: "c7faeb7e-e3dc-4881-8f35-c70b1e1e9a7f"   # Ice Line
+  7: "5185e956-27c4-41d1-bd7f-0dd3133a46b0"   # Polar Ice Wilmington
+  8: "b261166b-9e7c-4a96-ab06-ec630deb3321"   # Off Ice
+  9: "392d379c-f17b-4a20-b743-c1d005e553d0"   # Polar Ice House Wake Forest
+  10: "d9fde7ef-1344-49b4-acc8-b1d0464f1b6e"  # Wake Competition Center
+  11: "ae6e22f7-d4be-4188-a871-bf4288a36997"  # Ice Chalet
+  12: "80a8f30e-93c6-4ed0-9a56-6cd84fbe44b7"  # The Galleria
+  13: "8f9c7515-d65d-49a5-b716-d8de5b0fab36"  # Richardson Stars Center
+  14: "0c4ca8f4-0949-4d09-83e0-b59663ccddb6"  # Ford Ice Center Antioch
+  15: "042c6bf0-9fe4-482f-be96-f563f25a5b10"  # Pineville Ice House
+  16: "a8be80dc-1e0d-4cc4-9743-46c9b273b7de"  # Liberty Ice Pavilion
+  17: "f3658548-9c04-44de-999e-40df4899285a"  # Extreme Ice Center
+  18: "b6b3dd75-ebb4-4a89-90c2-f95f56c1968c"  # Greensboro Ice House
+
+coaches:
+  0: "487d43b5-0a4d-4dc4-8cc2-ab06870a10bf"   # No coach (placeholder)
+  1: "382b3860-f70c-4eef-a0da-bb05cc417ab8"   # Dasha K
+  2: "188e885d-faba-4daa-96b2-28c368194635"   # Stephanie B
+  3: "487d43b5-0a4d-4dc4-8cc2-ab06870a10bf"   # No coach (mapped from old id 3)
+  4: "97c92f21-c2db-46cd-b1a2-cfd6575d29da"   # Tori S
+  5: "726cd130-aa30-453c-9e16-2692eb216dba"   # Robin H
+  6: "03a226ee-a473-4fe9-9b3a-4a8c729bd127"   # Aly H
+
+skate_types:
+  0: "db32094e-9b0d-42a5-b87f-cd47729b6c65"    # Group Class (legacy default)
+  1: "dc812842-a9a9-4902-b680-361420baffe5"    # Free Style (Walk On)
+  2: "cedbb4e9-ab5b-4a14-a273-fd9783aaac86"    # Public
+  3: "12208eeb-9ffe-4ac3-90d3-976741a34249"    # Coaching Session
+  4: "7a3b3441-04d6-4b5a-afb6-eb556022c2e7"    # Competition
+  5: "88f87085-927d-4b77-b1c9-77d6de7c2d28"    # Performance
+  6: "e48d17a7-d092-4320-8e5b-6670d57b104b"    # Club Ice
+  7: "db32094e-9b0d-42a5-b87f-cd47729b6c65"    # Group Class
+  8: "0bcb0d7a-f5f0-41e2-bccb-78e80eb6673f"    # Free Style (Punch Card)
+  9: "a2250306-a238-4ff3-b772-ae86cbda0d7c"    # Off Ice - Concrete/Asphalt
+  10: "43cae2d2-909c-47a1-ac7d-a1a923c25d4e"   # Off Ice - Rink

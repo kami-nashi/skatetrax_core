@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime, UUID, ForeignKey
 from datetime import datetime, timezone
+from uuid import uuid4
 
 from .base import Base
 
@@ -41,6 +42,10 @@ class uSkaterConfig(Base):
     org_Club_Join_Date = Column(DateTime)
     org_USFSA_number = Column(Integer)
 
+    # profile sharing and communication
+    contact_preference = Column(String, nullable=True, default='email')
+    share_token = Column(UUID, nullable=True, unique=True)
+
     def __init__(
         self,
         date_created,
@@ -61,6 +66,8 @@ class uSkaterConfig(Base):
         org_Club_Join_Date,
         org_USFSA_number,
         uSkaterTZ='UTC',
+        contact_preference=None,
+        share_token=None,
             ):
 
         self.date_created = date_created
@@ -81,3 +88,5 @@ class uSkaterConfig(Base):
         self.org_Club_Join_Date = org_Club_Join_Date
         self.org_USFSA_number = org_USFSA_number
         self.uSkaterTZ = uSkaterTZ
+        self.contact_preference = contact_preference
+        self.share_token = share_token
